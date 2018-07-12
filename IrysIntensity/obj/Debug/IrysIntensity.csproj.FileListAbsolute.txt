@@ -1,0 +1,17 @@
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\IrysIntensity.exe.config
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\IrysIntensity.exe
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\IrysIntensity.pdb
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\EntityFramework.dll
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\EntityFramework.SqlServer.dll
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\System.Data.SQLite.dll
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\System.Data.SQLite.EF6.dll
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\System.Data.SQLite.Linq.dll
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\EntityFramework.xml
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\EntityFramework.SqlServer.xml
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\System.Data.SQLite.xml
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.csprojResolveAssemblyReference.cache
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.IrysIntensity.resources
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.Properties.Resources.resources
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.csproj.GenerateResource.Cache
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.exe
+c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.pdb
