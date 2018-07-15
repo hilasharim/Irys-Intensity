@@ -40,7 +40,7 @@ namespace IrysIntensity
             string create_projects_table_command = "CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)";
             string create_run_table_command = "CREATE TABLE IF NOT EXISTS runs (id INTEGER PRIMARY KEY, projectId INTEGER NOT NULL, name TEXT NOT NULL, month TEXT NOT NULL, UNIQUE(projectId, name, month))";
             string create_molecules_table_command = @"CREATE TABLE IF NOT EXISTS molecules (id INTEGER PRIMARY KEY, projectId INTEGER NOT NULL, runId INTEGER NOT NULL, molId INTEGER NOT NULL,
-                                                    scan INTEGER NOT NULL, originalID INTEGER NOT NULL, length REAL NOT NULL, mapped INTEGER NOT NULL, chromId INTEGER, start REAL, end REAL,
+                                                    scan INTEGER NOT NULL, originalID INTEGER NOT NULL, length REAL NOT NULL, mapped INTEGER NOT NULL, chromId INTEGER, molStart REAL, molEnd REAL,
                                                     orientation TEXT, confidence REAL, alignmentString TEXT, percentAligned REAL, UNIQUE(projectId, runId, scan, originalId))";
 
             string[] create_index_commands = {"CREATE INDEX IF NOT EXISTS molecule_ids ON molecules (projectId, molId)",
@@ -48,7 +48,7 @@ namespace IrysIntensity
                                               "CREATE INDEX IF NOT EXISTS lengths ON molecules (length)",
                                               "CREATE INDEX IF NOT EXISTS conf ON molecules (confidence)",
                                               "CREATE INDEX IF NOT EXISTS percent_alignment ON molecules (percentAligned)",
-                                              "CREATE INDEX IF NOT EXISTS alignment_pos ON molecules (chromId, start, end)"};
+                                              "CREATE INDEX IF NOT EXISTS alignment_pos ON molecules (chromId, molStart, molEnd)"};
 
             ExecuteNonQueryCmd(create_projects_table_command);
             ExecuteNonQueryCmd(create_run_table_command);
@@ -120,7 +120,7 @@ namespace IrysIntensity
         public static void AddMolecule(int projectId, int runId, int molId, int scan, int originalId, float length, int mapped, int chromId, float start, float end, string orientation, float confidence,
             string alignmentString, float percentAligned)
         {
-            string add_molecule_command = @"INSERT OR IGNORE INTO molecules (projectId, runId, molId, scan, originalId, length, mapped, chromId, start, end, orientation, confidence,
+            string add_molecule_command = @"INSERT OR IGNORE INTO molecules (projectId, runId, molId, scan, originalID, length, mapped, chromId, molStart, molEnd, orientation, confidence,
                                             alignmentString, percentAligned) VALUES (@param1, @param2, @param3, @param4, @param5, @param6, @param7, @param8, @param9, @param10, @param11,
                                             @param12, @param13, @param14)";
 
@@ -140,6 +140,66 @@ namespace IrysIntensity
             sql_cmd.Parameters.Add(new SQLiteParameter("@param13", alignmentString));
             sql_cmd.Parameters.Add(new SQLiteParameter("@param14", percentAligned));
             sql_cmd.ExecuteNonQuery();
+        }
+
+        public static int SelectMolecules(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
+            List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
+        {
+            SetConnection();
+            sql_con.Open();
+
+            string select_molecule_command = "SELECT * FROM molecules WHERE projectId == @param1 AND ";
+            string molIdsList = null;
+            string chromIdList = null;
+            StringBuilder molLocations = null;
+
+            if (mappedFilter == 1)
+            {
+                select_molecule_command += "mapped == 1 AND ";
+            }
+            select_molecule_command += "length >= @param2 AND confidence >= @param3 AND percentAligned >= @param4";
+            if (molIdsFilter != null)
+            {
+                select_molecule_command += " AND molId IN (@param5)";
+                molIdsList = String.Join(",", molIdsFilter);
+            }
+            if (chromIdsFilter != null && chromIdsFilter.Count > 0)
+            {
+                select_molecule_command += " AND chromId IN (@param6)";
+                chromIdList = String.Join(",", chromIdsFilter);
+            }
+            if (chromStartEndsFilter!=null && chromStartEndsFilter.Count > 0)
+            {
+                select_molecule_command += " AND (@param7)";
+                molLocations = new StringBuilder();
+                foreach (Tuple<int, int, int> molLocation in chromStartEndsFilter)
+                {
+                    molLocations.AppendFormat("(chromId == {0} AND ((molStart BETWEEN {1} AND {2}) OR (molEnd BETWEEN {1} AND {2}))) OR ", molLocation.Item1, molLocation.Item2, molLocation.Item3);
+                }
+                molLocations.Length -= 4;
+            }
+
+            sql_cmd = new SQLiteCommand(select_molecule_command, sql_con);
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param2", lengthFilter));
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param3", confidenceFilter));
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param4", percentAlignedFilter));
+            if (molIdsFilter != null)
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param5", molIdsList));
+            }
+            if (chromIdsFilter != null && chromIdsFilter.Count > 0)
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param6", chromIdList));
+            }
+            if (chromStartEndsFilter != null && chromStartEndsFilter.Count > 0)
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param7", molLocations.ToString()));
+            }
+
+            int count = Convert.ToInt32(sql_cmd.ExecuteScalar());
+            sql_con.Close();
+            return 0;
         }
     }
 }

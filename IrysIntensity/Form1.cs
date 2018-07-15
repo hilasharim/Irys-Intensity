@@ -108,10 +108,12 @@ namespace IrysIntensity
         private void filterMolecules_Click(object sender, EventArgs e)
         {
             int alignmentFilter = aligned_filter_ckbx.Checked ? 1 : 0;
-            float lengthFilter = String.IsNullOrEmpty(min_len_txtbx.Text) ? 0 : float.Parse(min_len_txtbx.Text);
+            float lengthFilter = String.IsNullOrEmpty(min_len_txtbx.Text) ? 0 : float.Parse(min_len_txtbx.Text) * 1000;
             float confidenceFilter = String.IsNullOrEmpty(min_conf_txtbx.Text) ? 0 : float.Parse(min_conf_txtbx.Text);
             float alignedLenPercentFilter = String.IsNullOrEmpty(min_aligned_len_txtbx.Text) ? 0 : float.Parse(min_aligned_len_txtbx.Text);
             int[] molIdsFilterArray = null;
+            List<int> chromIdsFilter = null;
+            List<Tuple<int, int, int>> chromStartEndFilter = null;
 
             if (!String.IsNullOrEmpty(mols_ids_txtbx.Text) && !String.IsNullOrEmpty(mol_ids_file_path_txtbx.Text))
             {
@@ -153,9 +155,14 @@ namespace IrysIntensity
                     else
                     {
                         //get the locations from user input
+                        Tuple<List<int>, List<Tuple<int, int, int>>> locations = UserInputParser.getLocations(mol_locations_txtbx.Text, mol_locations_file_path_txtbx.Text);
+                        chromIdsFilter = locations.Item1;
+                        chromStartEndFilter = locations.Item2;
                     }
                 }
             }
+
+            int count = DatabaseManager.SelectMolecules(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, chromStartEndFilter);
         }
     }
 }

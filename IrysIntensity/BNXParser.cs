@@ -34,7 +34,7 @@ namespace IrysIntensity
                 runIds.Add(runInfo[13], runName);
             }
 
-            return Tuple.Create(runInfo[13],runName, runMonth);
+            return Tuple.Create(runInfo[13], runName, runMonth);
         }
 
         //reads the BNX file, adds new molecules and runs to database, returns total number of molecules read or -1 if can't open file

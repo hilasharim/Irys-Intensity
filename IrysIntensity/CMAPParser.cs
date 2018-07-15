@@ -9,7 +9,7 @@ namespace IrysIntensity
 {
     class CMAPParser
     {
-        private static Dictionary<string, string> chromNamesToIds = new Dictionary<string,string>();
+        public static Dictionary<string, int> chromNamesToIds = new Dictionary<string,int>();
         private static Dictionary<string, string> chromIdsToNames = new Dictionary<string,string>();
         private static Dictionary<string, int> chromLengths = new Dictionary<string,int>(); //map chromosome names to their length
 
@@ -34,7 +34,7 @@ namespace IrysIntensity
                         {
                             string[] chromInfo = line.Split('\t');
                             chromIdsToNames.Add(chromInfo[0], chromInfo[1]);
-                            chromNamesToIds.Add(chromInfo[1], chromInfo[0]);
+                            chromNamesToIds.Add(chromInfo[1], int.Parse(chromInfo[0]));
                             chromLengths.Add(chromInfo[1], int.Parse(chromInfo[2]));
                             totalChromosomesRead++;
                         }
