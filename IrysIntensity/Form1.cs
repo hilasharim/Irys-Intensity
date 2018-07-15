@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Diagnostics;
 
 namespace IrysIntensity
 {
@@ -23,6 +24,7 @@ namespace IrysIntensity
             {
                 DatabaseManager.updateComboBox(projectsCmbBox, "name", "id", "projects");
             }
+            DatabaseManager.setUpDBOnStartUp();
         }
 
         private void LoadNewFile(TextBox txtBox, String fileType)
