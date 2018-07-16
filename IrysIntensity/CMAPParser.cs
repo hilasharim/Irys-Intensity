@@ -33,9 +33,9 @@ namespace IrysIntensity
                         if (Char.IsNumber(line[0])) //if not header line
                         {
                             string[] chromInfo = line.Split('\t');
-                            chromIdsToNames.Add(chromInfo[0], chromInfo[1]);
-                            chromNamesToIds.Add(chromInfo[1], int.Parse(chromInfo[0]));
-                            chromLengths.Add(chromInfo[1], int.Parse(chromInfo[2]));
+                            chromIdsToNames[chromInfo[0]] = chromInfo[1];
+                            chromNamesToIds[chromInfo[1]] = int.Parse(chromInfo[0]);
+                            chromLengths[chromInfo[1]] = int.Parse(chromInfo[2]);
                             totalChromosomesRead++;
                         }
                     }

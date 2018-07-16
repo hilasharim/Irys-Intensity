@@ -65,6 +65,19 @@
             this.key_file_path_txtbx = new System.Windows.Forms.TextBox();
             this.openKeyFile = new System.Windows.Forms.Button();
             this.filterMolecules = new System.Windows.Forms.Button();
+            this.label16 = new System.Windows.Forms.Label();
+            this.q_cmap_file_path_txtbx = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.openQcmapFile = new System.Windows.Forms.Button();
+            this.label18 = new System.Windows.Forms.Label();
+            this.r_cmap_file_path_txtbx = new System.Windows.Forms.TextBox();
+            this.openRcmapFile = new System.Windows.Forms.Button();
+            this.label19 = new System.Windows.Forms.Label();
+            this.key_file_path_txtbx2 = new System.Windows.Forms.TextBox();
+            this.openKeyFile2 = new System.Windows.Forms.Button();
+            this.label20 = new System.Windows.Forms.Label();
+            this.runs_paths_txtbx = new System.Windows.Forms.TextBox();
+            this.openRunLocations = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -399,11 +412,140 @@
             this.filterMolecules.UseVisualStyleBackColor = true;
             this.filterMolecules.Click += new System.EventHandler(this.filterMolecules_Click);
             // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
+            this.label16.Location = new System.Drawing.Point(746, 9);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(51, 13);
+            this.label16.TabIndex = 37;
+            this.label16.Text = "Analyze";
+            // 
+            // q_cmap_file_path_txtbx
+            // 
+            this.q_cmap_file_path_txtbx.Location = new System.Drawing.Point(843, 29);
+            this.q_cmap_file_path_txtbx.Name = "q_cmap_file_path_txtbx";
+            this.q_cmap_file_path_txtbx.Size = new System.Drawing.Size(362, 20);
+            this.q_cmap_file_path_txtbx.TabIndex = 38;
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(746, 32);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(91, 13);
+            this.label17.TabIndex = 39;
+            this.label17.Text = "Q_CMAP file path";
+            // 
+            // openQcmapFile
+            // 
+            this.openQcmapFile.Location = new System.Drawing.Point(1211, 27);
+            this.openQcmapFile.Name = "openQcmapFile";
+            this.openQcmapFile.Size = new System.Drawing.Size(75, 23);
+            this.openQcmapFile.TabIndex = 40;
+            this.openQcmapFile.Text = "Browse";
+            this.openQcmapFile.UseVisualStyleBackColor = true;
+            this.openQcmapFile.Click += new System.EventHandler(this.openQcmapFile_Click);
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(746, 59);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(91, 13);
+            this.label18.TabIndex = 41;
+            this.label18.Text = "R_CMAP file path";
+            // 
+            // r_cmap_file_path_txtbx
+            // 
+            this.r_cmap_file_path_txtbx.Location = new System.Drawing.Point(843, 56);
+            this.r_cmap_file_path_txtbx.Name = "r_cmap_file_path_txtbx";
+            this.r_cmap_file_path_txtbx.Size = new System.Drawing.Size(362, 20);
+            this.r_cmap_file_path_txtbx.TabIndex = 42;
+            // 
+            // openRcmapFile
+            // 
+            this.openRcmapFile.Location = new System.Drawing.Point(1211, 54);
+            this.openRcmapFile.Name = "openRcmapFile";
+            this.openRcmapFile.Size = new System.Drawing.Size(75, 23);
+            this.openRcmapFile.TabIndex = 43;
+            this.openRcmapFile.Text = "Browse";
+            this.openRcmapFile.UseVisualStyleBackColor = true;
+            this.openRcmapFile.Click += new System.EventHandler(this.openRcmapFile_Click);
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(746, 88);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(133, 13);
+            this.label19.TabIndex = 44;
+            this.label19.Text = "Chromosomes key file path";
+            // 
+            // key_file_path_txtbx2
+            // 
+            this.key_file_path_txtbx2.Location = new System.Drawing.Point(885, 86);
+            this.key_file_path_txtbx2.Name = "key_file_path_txtbx2";
+            this.key_file_path_txtbx2.Size = new System.Drawing.Size(362, 20);
+            this.key_file_path_txtbx2.TabIndex = 45;
+            // 
+            // openKeyFile2
+            // 
+            this.openKeyFile2.Location = new System.Drawing.Point(1253, 83);
+            this.openKeyFile2.Name = "openKeyFile2";
+            this.openKeyFile2.Size = new System.Drawing.Size(75, 23);
+            this.openKeyFile2.TabIndex = 46;
+            this.openKeyFile2.Text = "Browse";
+            this.openKeyFile2.UseVisualStyleBackColor = true;
+            this.openKeyFile2.Click += new System.EventHandler(this.openKeyFile2_Click);
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(746, 123);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(61, 13);
+            this.label20.TabIndex = 47;
+            this.label20.Text = "Runs paths";
+            // 
+            // runs_paths_txtbx
+            // 
+            this.runs_paths_txtbx.Location = new System.Drawing.Point(813, 123);
+            this.runs_paths_txtbx.Multiline = true;
+            this.runs_paths_txtbx.Name = "runs_paths_txtbx";
+            this.runs_paths_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.runs_paths_txtbx.Size = new System.Drawing.Size(362, 76);
+            this.runs_paths_txtbx.TabIndex = 48;
+            // 
+            // openRunLocations
+            // 
+            this.openRunLocations.Location = new System.Drawing.Point(1181, 150);
+            this.openRunLocations.Name = "openRunLocations";
+            this.openRunLocations.Size = new System.Drawing.Size(105, 23);
+            this.openRunLocations.TabIndex = 49;
+            this.openRunLocations.Text = "Add run locations";
+            this.openRunLocations.UseVisualStyleBackColor = true;
+            this.openRunLocations.Click += new System.EventHandler(this.openRunLocations_Click);
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1405, 649);
+            this.Controls.Add(this.openRunLocations);
+            this.Controls.Add(this.runs_paths_txtbx);
+            this.Controls.Add(this.label20);
+            this.Controls.Add(this.openKeyFile2);
+            this.Controls.Add(this.key_file_path_txtbx2);
+            this.Controls.Add(this.label19);
+            this.Controls.Add(this.openRcmapFile);
+            this.Controls.Add(this.r_cmap_file_path_txtbx);
+            this.Controls.Add(this.label18);
+            this.Controls.Add(this.openQcmapFile);
+            this.Controls.Add(this.label17);
+            this.Controls.Add(this.q_cmap_file_path_txtbx);
+            this.Controls.Add(this.label16);
             this.Controls.Add(this.filterMolecules);
             this.Controls.Add(this.openKeyFile);
             this.Controls.Add(this.key_file_path_txtbx);
@@ -487,6 +629,19 @@
         private System.Windows.Forms.TextBox key_file_path_txtbx;
         private System.Windows.Forms.Button openKeyFile;
         private System.Windows.Forms.Button filterMolecules;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.TextBox q_cmap_file_path_txtbx;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Button openQcmapFile;
+        private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.TextBox r_cmap_file_path_txtbx;
+        private System.Windows.Forms.Button openRcmapFile;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.TextBox key_file_path_txtbx2;
+        private System.Windows.Forms.Button openKeyFile2;
+        private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.TextBox runs_paths_txtbx;
+        private System.Windows.Forms.Button openRunLocations;
     }
 }
 

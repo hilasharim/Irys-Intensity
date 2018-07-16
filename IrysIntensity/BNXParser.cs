@@ -31,7 +31,7 @@ namespace IrysIntensity
                 if (runName.StartsWith("swap")) {
                     runName = runName.Remove(0, 4);
                 }
-                runIds.Add(runInfo[13], runName);
+                runIds[runInfo[13]] = runName;
             }
 
             return Tuple.Create(runInfo[13], runName, runMonth);
@@ -64,7 +64,7 @@ namespace IrysIntensity
                                 Tuple<string, string, string> runData = ParseRunData(line);
                                 //add run to database if the combination (projectId, run name, run month) doesn't exist
                                 DatabaseManager.AddRun(projectId, runData.Item2, runData.Item3);
-                                runDBIds.Add(runData.Item1, DatabaseManager.FindRunId(projectId, runData.Item2));
+                                runDBIds[runData.Item1] = DatabaseManager.FindRunId(projectId, runData.Item2);
                             }
                             else if (line.StartsWith("0")) //all molecule information lines start with '0'
                             {

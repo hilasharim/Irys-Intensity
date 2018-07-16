@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-using System.Diagnostics;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace IrysIntensity
 {
@@ -35,6 +35,18 @@ namespace IrysIntensity
             if (dr == DialogResult.OK)
             {
                 txtBox.Text = ofd.FileName;
+            }
+        }
+
+        private void LoadDirectories(TextBox txtBox)
+        {
+            CommonOpenFileDialog fd = new CommonOpenFileDialog();
+            fd.IsFolderPicker = true;
+            fd.Multiselect = true;
+            CommonFileDialogResult dr = fd.ShowDialog();
+            if (dr == CommonFileDialogResult.Ok)
+            {
+                txtBox.Text = String.Join("\r\n",fd.FileNames);
             }
         }
 
@@ -164,5 +176,26 @@ namespace IrysIntensity
 
             int count = DatabaseManager.SelectMolecules(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, chromStartEndFilter);
         }
+
+        private void openQcmapFile_Click(object sender, EventArgs e)
+        {
+            LoadNewFile(q_cmap_file_path_txtbx, "CMAP");
+        }
+
+        private void openRcmapFile_Click(object sender, EventArgs e)
+        {
+            LoadNewFile(r_cmap_file_path_txtbx, "CMAP");
+        }
+
+        private void openKeyFile2_Click(object sender, EventArgs e)
+        {
+            LoadNewFile(key_file_path_txtbx2, "txt");
+        }
+
+        private void openRunLocations_Click(object sender, EventArgs e)
+        {
+            LoadDirectories(runs_paths_txtbx);
+        }
+                
     }
 }

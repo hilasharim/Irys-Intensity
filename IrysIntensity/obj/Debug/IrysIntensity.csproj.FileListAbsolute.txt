@@ -15,3 +15,8 @@ c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\
 c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.csproj.GenerateResource.Cache
 c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.exe
 c:\users\hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Debug\IrysIntensity.pdb
+C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.dll
+C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.ExtendedLinguisticServices.dll
+C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.Sensors.dll
+C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.Shell.dll
+C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.ShellExtensions.dll

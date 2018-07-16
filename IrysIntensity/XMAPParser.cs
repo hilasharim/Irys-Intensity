@@ -37,8 +37,8 @@ namespace IrysIntensity
                         {
                             string[] moleculeInfo = line.Split('\t');
                             //moleculeData has the following information: RefContigID, RefStartPos, RefEndPos, Orientation, Confidence, AlignmentString, AlignedMolLengthPercent; all as strings
-                            moleculeData.Add(moleculeInfo[1], new List<string> { moleculeInfo[2], moleculeInfo[5], moleculeInfo[6], moleculeInfo[7], moleculeInfo[8], moleculeInfo[13], 
-                                                                                 getPercentAlignedMolLength(moleculeInfo[3], moleculeInfo[4], moleculeInfo[10]).ToString()});
+                            moleculeData[moleculeInfo[1]] = new List<string> { moleculeInfo[2], moleculeInfo[5], moleculeInfo[6], moleculeInfo[7], moleculeInfo[8], moleculeInfo[13], 
+                                                                                 getPercentAlignedMolLength(moleculeInfo[3], moleculeInfo[4], moleculeInfo[10]).ToString()};
                             totalMoleculesRead++;
                         }
                     }
