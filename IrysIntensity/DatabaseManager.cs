@@ -40,7 +40,8 @@ namespace IrysIntensity
             string create_projects_table_command = "CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)";
             string create_run_table_command = "CREATE TABLE IF NOT EXISTS runs (id INTEGER PRIMARY KEY, projectId INTEGER NOT NULL, name TEXT NOT NULL, month TEXT NOT NULL, UNIQUE(projectId, name, month))";
             string create_molecules_table_command = @"CREATE TABLE IF NOT EXISTS molecules (id INTEGER PRIMARY KEY, projectId INTEGER NOT NULL, runId INTEGER NOT NULL, molId INTEGER NOT NULL,
-                                                    scan INTEGER NOT NULL, originalID INTEGER NOT NULL, length REAL NOT NULL, mapped INTEGER NOT NULL, chromId INTEGER, molStart REAL, molEnd REAL,
+                                                    scan INTEGER NOT NULL, originalID INTEGER NOT NULL, length REAL NOT NULL, column INTEGER NOT NULL, rowStart INTEGER NOT NULL, rowEnd INTEGER NOT NULL,
+                                                    xStart READL NOT NULL, yStart REAL NOT NULL, xEnd REAL NOT NULL, yEnd REAL NOT NULL, mapped INTEGER NOT NULL, chromId INTEGER, molStart REAL, molEnd REAL,
                                                     orientation TEXT, confidence REAL, alignmentString TEXT, percentAligned REAL, UNIQUE(projectId, runId, scan, originalId))";
 
             string[] create_index_commands = {"CREATE INDEX IF NOT EXISTS molecule_ids ON molecules (projectId, molId)",
@@ -50,14 +51,18 @@ namespace IrysIntensity
                                               "CREATE INDEX IF NOT EXISTS percent_alignment ON molecules (percentAligned)",
                                               "CREATE INDEX IF NOT EXISTS alignment_pos ON molecules (chromId, molStart, molEnd)"};
 
-            ExecuteNonQueryCmd(create_projects_table_command);
-            ExecuteNonQueryCmd(create_run_table_command);
-            ExecuteNonQueryCmd(create_molecules_table_command);
-            foreach (string command_text in create_index_commands)
+            using (sql_con)
             {
-                ExecuteNonQueryCmd(command_text);
+                ExecuteNonQueryCmd(create_projects_table_command);
+                ExecuteNonQueryCmd(create_run_table_command);
+                ExecuteNonQueryCmd(create_molecules_table_command);
+                foreach (string command_text in create_index_commands)
+                {
+                    ExecuteNonQueryCmd(command_text);
+                }
             }
-            sql_con.Close();
+            
+           // sql_con.Close();
         }
 
         public static void updateComboBox(ComboBox cmbBoxToUpdate, string display, string value, string tableName)
@@ -81,18 +86,22 @@ namespace IrysIntensity
         {
             SetConnection();
             sql_con.Open();
-            string exists_project_name_command = "SELECT COUNT(id) from projects where name = '" + projectName + "'";
-            string add_project_command = "INSERT INTO projects (name) VALUES (\"" + projectName + "\")";
+            using (sql_con)
+            {
+                string exists_project_name_command = "SELECT COUNT(id) from projects where name = '" + projectName + "'";
+                string add_project_command = "INSERT INTO projects (name) VALUES (\"" + projectName + "\")";
 
-            if (ExecuteScalarCmd(exists_project_name_command) > 0)
-            {
-                MessageBox.Show("Project name already exists");
+                if (ExecuteScalarCmd(exists_project_name_command) > 0)
+                {
+                    MessageBox.Show("Project name already exists");
+                }
+                else
+                {
+                    ExecuteNonQueryCmd(add_project_command);
+                }
             }
-            else
-            {
-                ExecuteNonQueryCmd(add_project_command);
-            }
-            sql_con.Close();
+            
+           // sql_con.Close();
         }
 
         public static void AddRun(int projectId, string runName, string runMonth)
@@ -109,37 +118,84 @@ namespace IrysIntensity
         public static int FindRunId(int projectId, string runName)
         {
             string select_run_command = "SELECT id FROM runs WHERE projectId = @param1 AND name = @param2";
-            sql_cmd = new SQLiteCommand(select_run_command, sql_con);
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param2", runName));
-            SQLiteDataReader reader = sql_cmd.ExecuteReader();
-            reader.Read();
-            return Convert.ToInt32(reader["id"]);
+            using (sql_cmd = new SQLiteCommand(select_run_command, sql_con))
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param2", runName));
+                using (SQLiteDataReader reader = sql_cmd.ExecuteReader())
+                {
+                    reader.Read();
+                    return Convert.ToInt32(reader["id"]);
+                }
+            }
         }
 
-        public static void AddMolecule(int projectId, int runId, int molId, int scan, int originalId, float length, int mapped, int chromId, float start, float end, string orientation, float confidence,
-            string alignmentString, float percentAligned)
+        private static void AddMolecule(int projectId, int runId, int molId, int scan, int originalId, float length, int column, int rowStart, int rowEnd, float xStart, float yStart, float xEnd, float yEnd,
+            int mapped, int chromId, float start, float end, string orientation, float confidence, string alignmentString, float percentAligned)
         {
-            string add_molecule_command = @"INSERT OR IGNORE INTO molecules (projectId, runId, molId, scan, originalID, length, mapped, chromId, molStart, molEnd, orientation, confidence,
-                                            alignmentString, percentAligned) VALUES (@param1, @param2, @param3, @param4, @param5, @param6, @param7, @param8, @param9, @param10, @param11,
-                                            @param12, @param13, @param14)";
+            string add_molecule_command = @"INSERT OR IGNORE INTO molecules (projectId, runId, molId, scan, originalID, length, column, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, 
+                                            chromId, molStart, molEnd, orientation, confidence, alignmentString, percentAligned) 
+                                            VALUES (@param1, @param2, @param3, @param4, @param5, @param6, @param7, @param8, @param9, @param10, @param11, @param12, @param13, @param14, @param15,
+                                            @param16, @param17, @param18, @param19, @param20, @param21)";
 
-            sql_cmd = new SQLiteCommand(add_molecule_command, sql_con);
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param2", runId));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param3", molId));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param4", scan));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param5", originalId));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param6", length));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param7", mapped));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param8", chromId));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param9", start));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param10", end));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param11", orientation));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param12", confidence));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param13", alignmentString));
-            sql_cmd.Parameters.Add(new SQLiteParameter("@param14", percentAligned));
-            sql_cmd.ExecuteNonQuery();
+            using (sql_cmd = new SQLiteCommand(add_molecule_command, sql_con))
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param2", runId));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param3", molId));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param4", scan));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param5", originalId));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param6", length));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param7", column));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param8", rowStart));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param9", rowEnd));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param10", xStart));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param11", yStart));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param12", xEnd));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param13", yEnd));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param14", mapped));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param15", chromId));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param16", start));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param17", end));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param18", orientation));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param19", confidence));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param20", alignmentString));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param21", percentAligned));
+                sql_cmd.ExecuteNonQuery();
+            }
+        }
+
+        public static void AddAllMolecules(List<List<Molecule>> moleculeListByRun, int projectId)
+        {
+            SetConnection();
+            sql_con.Open();
+            using (sql_con)
+            {
+                using (var transaction = sql_con.BeginTransaction())
+                {
+                    for (int run = 0; run < moleculeListByRun.Count; run++)
+                    {
+                        foreach (Molecule mol in moleculeListByRun[run])
+                        {
+                            if (XMAPParser.moleculeData.ContainsKey(mol.MoleculeId)) //molecule aligned - add it to DB with alignment data
+                            {
+                                AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
+                                    mol.YEnd, 1, int.Parse(XMAPParser.moleculeData[mol.MoleculeId][0]), float.Parse(XMAPParser.moleculeData[mol.MoleculeId][1]),
+                                    float.Parse(XMAPParser.moleculeData[mol.MoleculeId][2]), XMAPParser.moleculeData[mol.MoleculeId][3], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][4]),
+                                    XMAPParser.moleculeData[mol.MoleculeId][5], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][6]));
+                            }
+                            else //add without alignment data, only information from BNX and MOL files
+                            {
+                                AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
+                                    mol.YEnd, 0, 0, 0, 0, "null", 0, "null", 0);
+                            }
+                        }
+                    }
+                    transaction.Commit();
+                }
+            }
+            
+            //sql_con.Close();
         }
 
         private static void AddListToINCmd(int[] valuesArray, int startParamNum)

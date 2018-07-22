@@ -76,8 +76,13 @@
             this.key_file_path_txtbx2 = new System.Windows.Forms.TextBox();
             this.openKeyFile2 = new System.Windows.Forms.Button();
             this.label20 = new System.Windows.Forms.Label();
-            this.runs_paths_txtbx = new System.Windows.Forms.TextBox();
+            this.runs_paths_txtbx2 = new System.Windows.Forms.TextBox();
             this.openRunLocations = new System.Windows.Forms.Button();
+            this.label21 = new System.Windows.Forms.Label();
+            this.alignment_channel_txtbx = new System.Windows.Forms.TextBox();
+            this.label22 = new System.Windows.Forms.Label();
+            this.runs_paths_txtbx = new System.Windows.Forms.TextBox();
+            this.openRunLocationsAdd = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -110,7 +115,7 @@
             // 
             // AddNewMols
             // 
-            this.AddNewMols.Location = new System.Drawing.Point(12, 183);
+            this.AddNewMols.Location = new System.Drawing.Point(620, 101);
             this.AddNewMols.Name = "AddNewMols";
             this.AddNewMols.Size = new System.Drawing.Size(79, 28);
             this.AddNewMols.TabIndex = 12;
@@ -210,7 +215,7 @@
             // label6
             // 
             this.label6.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.label6.Location = new System.Drawing.Point(-1, 228);
+            this.label6.Location = new System.Drawing.Point(-1, 280);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(700, 2);
             this.label6.TabIndex = 35;
@@ -219,7 +224,7 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
-            this.label7.Location = new System.Drawing.Point(12, 241);
+            this.label7.Location = new System.Drawing.Point(12, 293);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(104, 13);
             this.label7.TabIndex = 13;
@@ -230,7 +235,7 @@
             this.aligned_filter_ckbx.AutoSize = true;
             this.aligned_filter_ckbx.Checked = true;
             this.aligned_filter_ckbx.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.aligned_filter_ckbx.Location = new System.Drawing.Point(12, 267);
+            this.aligned_filter_ckbx.Location = new System.Drawing.Point(12, 319);
             this.aligned_filter_ckbx.Name = "aligned_filter_ckbx";
             this.aligned_filter_ckbx.Size = new System.Drawing.Size(83, 17);
             this.aligned_filter_ckbx.TabIndex = 14;
@@ -240,7 +245,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(127, 267);
+            this.label8.Location = new System.Drawing.Point(127, 319);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(77, 13);
             this.label8.TabIndex = 15;
@@ -248,7 +253,7 @@
             // 
             // min_len_txtbx
             // 
-            this.min_len_txtbx.Location = new System.Drawing.Point(130, 283);
+            this.min_len_txtbx.Location = new System.Drawing.Point(130, 335);
             this.min_len_txtbx.Name = "min_len_txtbx";
             this.min_len_txtbx.Size = new System.Drawing.Size(53, 20);
             this.min_len_txtbx.TabIndex = 16;
@@ -257,7 +262,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(247, 267);
+            this.label9.Location = new System.Drawing.Point(247, 319);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(80, 13);
             this.label9.TabIndex = 17;
@@ -265,7 +270,7 @@
             // 
             // min_conf_txtbx
             // 
-            this.min_conf_txtbx.Location = new System.Drawing.Point(250, 283);
+            this.min_conf_txtbx.Location = new System.Drawing.Point(250, 335);
             this.min_conf_txtbx.Name = "min_conf_txtbx";
             this.min_conf_txtbx.Size = new System.Drawing.Size(53, 20);
             this.min_conf_txtbx.TabIndex = 18;
@@ -274,7 +279,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(358, 266);
+            this.label10.Location = new System.Drawing.Point(358, 318);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(149, 13);
             this.label10.TabIndex = 19;
@@ -282,7 +287,7 @@
             // 
             // min_aligned_len_txtbx
             // 
-            this.min_aligned_len_txtbx.Location = new System.Drawing.Point(361, 283);
+            this.min_aligned_len_txtbx.Location = new System.Drawing.Point(361, 335);
             this.min_aligned_len_txtbx.Name = "min_aligned_len_txtbx";
             this.min_aligned_len_txtbx.Size = new System.Drawing.Size(53, 20);
             this.min_aligned_len_txtbx.TabIndex = 20;
@@ -291,7 +296,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(12, 319);
+            this.label11.Location = new System.Drawing.Point(12, 371);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(69, 13);
             this.label11.TabIndex = 21;
@@ -299,7 +304,7 @@
             // 
             // mols_ids_txtbx
             // 
-            this.mols_ids_txtbx.Location = new System.Drawing.Point(12, 335);
+            this.mols_ids_txtbx.Location = new System.Drawing.Point(12, 387);
             this.mols_ids_txtbx.Multiline = true;
             this.mols_ids_txtbx.Name = "mols_ids_txtbx";
             this.mols_ids_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -309,7 +314,7 @@
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(14, 507);
+            this.label12.Location = new System.Drawing.Point(14, 559);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(55, 13);
             this.label12.TabIndex = 23;
@@ -317,14 +322,14 @@
             // 
             // mol_ids_file_path_txtbx
             // 
-            this.mol_ids_file_path_txtbx.Location = new System.Drawing.Point(12, 523);
+            this.mol_ids_file_path_txtbx.Location = new System.Drawing.Point(12, 575);
             this.mol_ids_file_path_txtbx.Name = "mol_ids_file_path_txtbx";
             this.mol_ids_file_path_txtbx.Size = new System.Drawing.Size(223, 20);
             this.mol_ids_file_path_txtbx.TabIndex = 24;
             // 
             // openMolIdsFile
             // 
-            this.openMolIdsFile.Location = new System.Drawing.Point(12, 549);
+            this.openMolIdsFile.Location = new System.Drawing.Point(12, 601);
             this.openMolIdsFile.Name = "openMolIdsFile";
             this.openMolIdsFile.Size = new System.Drawing.Size(75, 23);
             this.openMolIdsFile.TabIndex = 25;
@@ -335,7 +340,7 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(298, 319);
+            this.label13.Location = new System.Drawing.Point(298, 371);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(149, 13);
             this.label13.TabIndex = 26;
@@ -343,7 +348,7 @@
             // 
             // mol_locations_txtbx
             // 
-            this.mol_locations_txtbx.Location = new System.Drawing.Point(301, 335);
+            this.mol_locations_txtbx.Location = new System.Drawing.Point(301, 387);
             this.mol_locations_txtbx.Multiline = true;
             this.mol_locations_txtbx.Name = "mol_locations_txtbx";
             this.mol_locations_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -353,7 +358,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(298, 507);
+            this.label14.Location = new System.Drawing.Point(298, 559);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(55, 13);
             this.label14.TabIndex = 28;
@@ -361,14 +366,14 @@
             // 
             // mol_locations_file_path_txtbx
             // 
-            this.mol_locations_file_path_txtbx.Location = new System.Drawing.Point(301, 523);
+            this.mol_locations_file_path_txtbx.Location = new System.Drawing.Point(301, 575);
             this.mol_locations_file_path_txtbx.Name = "mol_locations_file_path_txtbx";
             this.mol_locations_file_path_txtbx.Size = new System.Drawing.Size(223, 20);
             this.mol_locations_file_path_txtbx.TabIndex = 29;
             // 
             // openMolLocationsFile
             // 
-            this.openMolLocationsFile.Location = new System.Drawing.Point(530, 521);
+            this.openMolLocationsFile.Location = new System.Drawing.Point(530, 573);
             this.openMolLocationsFile.Name = "openMolLocationsFile";
             this.openMolLocationsFile.Size = new System.Drawing.Size(75, 23);
             this.openMolLocationsFile.TabIndex = 30;
@@ -379,7 +384,7 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(298, 554);
+            this.label15.Location = new System.Drawing.Point(298, 606);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(151, 13);
             this.label15.TabIndex = 31;
@@ -387,14 +392,14 @@
             // 
             // key_file_path_txtbx
             // 
-            this.key_file_path_txtbx.Location = new System.Drawing.Point(301, 570);
+            this.key_file_path_txtbx.Location = new System.Drawing.Point(301, 622);
             this.key_file_path_txtbx.Name = "key_file_path_txtbx";
             this.key_file_path_txtbx.Size = new System.Drawing.Size(223, 20);
             this.key_file_path_txtbx.TabIndex = 32;
             // 
             // openKeyFile
             // 
-            this.openKeyFile.Location = new System.Drawing.Point(530, 568);
+            this.openKeyFile.Location = new System.Drawing.Point(530, 620);
             this.openKeyFile.Name = "openKeyFile";
             this.openKeyFile.Size = new System.Drawing.Size(75, 23);
             this.openKeyFile.TabIndex = 33;
@@ -404,7 +409,7 @@
             // 
             // filterMolecules
             // 
-            this.filterMolecules.Location = new System.Drawing.Point(624, 241);
+            this.filterMolecules.Location = new System.Drawing.Point(624, 293);
             this.filterMolecules.Name = "filterMolecules";
             this.filterMolecules.Size = new System.Drawing.Size(75, 23);
             this.filterMolecules.TabIndex = 36;
@@ -509,14 +514,14 @@
             this.label20.TabIndex = 47;
             this.label20.Text = "Runs paths";
             // 
-            // runs_paths_txtbx
+            // runs_paths_txtbx2
             // 
-            this.runs_paths_txtbx.Location = new System.Drawing.Point(813, 123);
-            this.runs_paths_txtbx.Multiline = true;
-            this.runs_paths_txtbx.Name = "runs_paths_txtbx";
-            this.runs_paths_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.runs_paths_txtbx.Size = new System.Drawing.Size(362, 76);
-            this.runs_paths_txtbx.TabIndex = 48;
+            this.runs_paths_txtbx2.Location = new System.Drawing.Point(813, 123);
+            this.runs_paths_txtbx2.Multiline = true;
+            this.runs_paths_txtbx2.Name = "runs_paths_txtbx2";
+            this.runs_paths_txtbx2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.runs_paths_txtbx2.Size = new System.Drawing.Size(362, 76);
+            this.runs_paths_txtbx2.TabIndex = 48;
             // 
             // openRunLocations
             // 
@@ -528,13 +533,64 @@
             this.openRunLocations.UseVisualStyleBackColor = true;
             this.openRunLocations.Click += new System.EventHandler(this.openRunLocations_Click);
             // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(746, 217);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(119, 13);
+            this.label21.TabIndex = 50;
+            this.label21.Text = "Alignment label channel";
+            // 
+            // alignment_channel_txtbx
+            // 
+            this.alignment_channel_txtbx.Location = new System.Drawing.Point(871, 214);
+            this.alignment_channel_txtbx.Name = "alignment_channel_txtbx";
+            this.alignment_channel_txtbx.Size = new System.Drawing.Size(30, 20);
+            this.alignment_channel_txtbx.TabIndex = 51;
+            this.alignment_channel_txtbx.Text = "1";
+            this.alignment_channel_txtbx.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label22
+            // 
+            this.label22.AutoSize = true;
+            this.label22.Location = new System.Drawing.Point(30, 186);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(61, 13);
+            this.label22.TabIndex = 52;
+            this.label22.Text = "Runs paths";
+            // 
+            // runs_paths_txtbx
+            // 
+            this.runs_paths_txtbx.Location = new System.Drawing.Point(97, 183);
+            this.runs_paths_txtbx.Multiline = true;
+            this.runs_paths_txtbx.Name = "runs_paths_txtbx";
+            this.runs_paths_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.runs_paths_txtbx.Size = new System.Drawing.Size(362, 76);
+            this.runs_paths_txtbx.TabIndex = 53;
+            // 
+            // openRunLocationsAdd
+            // 
+            this.openRunLocationsAdd.Location = new System.Drawing.Point(465, 207);
+            this.openRunLocationsAdd.Name = "openRunLocationsAdd";
+            this.openRunLocationsAdd.Size = new System.Drawing.Size(105, 23);
+            this.openRunLocationsAdd.TabIndex = 54;
+            this.openRunLocationsAdd.Text = "Add run locations";
+            this.openRunLocationsAdd.UseVisualStyleBackColor = true;
+            this.openRunLocationsAdd.Click += new System.EventHandler(this.openRunLocationsAdd_Click);
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1405, 649);
-            this.Controls.Add(this.openRunLocations);
+            this.Controls.Add(this.openRunLocationsAdd);
             this.Controls.Add(this.runs_paths_txtbx);
+            this.Controls.Add(this.label22);
+            this.Controls.Add(this.alignment_channel_txtbx);
+            this.Controls.Add(this.label21);
+            this.Controls.Add(this.openRunLocations);
+            this.Controls.Add(this.runs_paths_txtbx2);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.openKeyFile2);
             this.Controls.Add(this.key_file_path_txtbx2);
@@ -640,8 +696,13 @@
         private System.Windows.Forms.TextBox key_file_path_txtbx2;
         private System.Windows.Forms.Button openKeyFile2;
         private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.TextBox runs_paths_txtbx;
+        private System.Windows.Forms.TextBox runs_paths_txtbx2;
         private System.Windows.Forms.Button openRunLocations;
+        private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.TextBox alignment_channel_txtbx;
+        private System.Windows.Forms.Label label22;
+        private System.Windows.Forms.TextBox runs_paths_txtbx;
+        private System.Windows.Forms.Button openRunLocationsAdd;
     }
 }
 

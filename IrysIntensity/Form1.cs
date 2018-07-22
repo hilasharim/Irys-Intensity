@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using System.Diagnostics;
 
 namespace IrysIntensity
 {
@@ -59,33 +60,38 @@ namespace IrysIntensity
 
         private void AddNewMols_Click(object sender, EventArgs e)
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             string xmapFilePath = XMAP_path_txtbox.Text;
             string bnxFilePath = BNX_path_txtbox.Text;
             if (String.IsNullOrEmpty(xmapFilePath))
             {
                 MessageBox.Show("Must provide path to XMAP file", "Missing file path");
+                return;
             }
-            else if (String.IsNullOrEmpty(bnxFilePath))
+            if (String.IsNullOrEmpty(bnxFilePath))
             {
                 MessageBox.Show("Must provide path to BNX file", "Missing file path");
+                return;
             }
-            else
+
+            int totalALignedMolecules = XMAPParser.ParseXmap(xmapFilePath);
+            if (totalALignedMolecules == -1)
             {
-                int totalALignedMolecules = XMAPParser.ParseXmap(xmapFilePath);
-                if (totalALignedMolecules == -1)
-                {
-                    MessageBox.Show("Can't open specified XMAP file", "Error opening file");
-                }
-                else
-                {
-                    int totalMolecules = BNXParser.ParseBNX(bnxFilePath, projectID);
-                    if (totalMolecules == -1)
-                    {
-                        MessageBox.Show("Can't open specified BNX file", "Error opening file");
-                    }
-                }
+                MessageBox.Show("Can't open specified XMAP file", "Error opening file");
+                return;
             }
+            int totalMolecules = BNXParser.ParseBNX(bnxFilePath, projectID);
+            if (totalMolecules == -1)
+            {
+                MessageBox.Show("Can't open specified BNX file", "Error opening file");
+                return;
+            }
+            BNXParser.ParseAllMolFiles(@"X:\runs");
+            DatabaseManager.AddAllMolecules(BNXParser.moleculeListByRun, projectID);
+            MessageBox.Show(String.Format("time elapsed: {0}", stopWatch.Elapsed.ToString()));
         }
+         
 
         private void projectsCmbBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -193,6 +199,11 @@ namespace IrysIntensity
         }
 
         private void openRunLocations_Click(object sender, EventArgs e)
+        {
+            LoadDirectories(runs_paths_txtbx2);
+        }
+
+        private void openRunLocationsAdd_Click(object sender, EventArgs e)
         {
             LoadDirectories(runs_paths_txtbx);
         }
