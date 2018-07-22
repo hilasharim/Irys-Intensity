@@ -84,19 +84,6 @@ namespace IrysIntensity
                                     string[] bnxMolInfo = line.Split('\t');
                                     Molecule mol = new Molecule(int.Parse(bnxMolInfo[1]), float.Parse(bnxMolInfo[2]), int.Parse(bnxMolInfo[11]), int.Parse(bnxMolInfo[7]), int.Parse(bnxMolInfo[6]));
                                     moleculeListByRun[int.Parse(bnxMolInfo[11]) - 1].Add(mol);
-                                    /*if (XMAPParser.moleculeData.ContainsKey(bnxMolInfo[1])) //if molecule was aligned - add to database alignment information
-                                    {
-                                        DatabaseManager.AddMolecule(projectId, runDBIds[int.Parse(bnxMolInfo[11])], int.Parse(bnxMolInfo[1]), int.Parse(bnxMolInfo[7]), int.Parse(bnxMolInfo[6]), float.Parse(bnxMolInfo[2]), 1,
-                                        int.Parse(XMAPParser.moleculeData[bnxMolInfo[1]][0]), float.Parse(XMAPParser.moleculeData[bnxMolInfo[1]][1]), float.Parse(XMAPParser.moleculeData[bnxMolInfo[1]][2]),
-                                        XMAPParser.moleculeData[bnxMolInfo[1]][3], float.Parse(XMAPParser.moleculeData[bnxMolInfo[1]][4]), XMAPParser.moleculeData[bnxMolInfo[1]][5],
-                                        float.Parse(XMAPParser.moleculeData[bnxMolInfo[1]][6]));
-                                    }
-                                    else //otherwise add only information from BNX
-                                    {
-                                        DatabaseManager.AddMolecule(projectId, runDBIds[int.Parse(bnxMolInfo[11])], int.Parse(bnxMolInfo[1]), int.Parse(bnxMolInfo[7]), int.Parse(bnxMolInfo[6]), float.Parse(bnxMolInfo[2]), 0,
-                                        0, 0, 0, "null", 0, "null", 0);
-                                    }*/
-
                                     totalReadMolecules++;
                                 }
                             }
@@ -107,8 +94,7 @@ namespace IrysIntensity
 
             }
 
-            //DatabaseManager.sql_con.Close();
-
+            //sort the molecules by scan and original id for parsing of .mol files
             for (int run = 0; run < moleculeListByRun.Count; run++)
             {
                 moleculeListByRun[run] = moleculeListByRun[run].OrderBy(mol => mol.Scan).ThenBy(mol => mol.OriginalId).ToList();
@@ -117,7 +103,8 @@ namespace IrysIntensity
             return totalReadMolecules;
         }
 
-
+        //function receives a run id and the path to the .mol files of the run, and adds the image positions information to the relevant molecules
+        //the molecules are sorted so there is no need to go back in the file to a line that's already been read
         private static void ParseRunMolFiles(string molFilesDirPath, int runId)
         {
             int prev_scan = 0;
@@ -128,7 +115,7 @@ namespace IrysIntensity
 
             foreach (Molecule mol in moleculeListByRun[runId])
             {
-                if (mol.Scan != prev_scan)
+                if (mol.Scan != prev_scan) //new scan - open the relevant .mol file
                 {
                     if (fileStream != null)
                     {
@@ -141,7 +128,7 @@ namespace IrysIntensity
                     streamReader = new StreamReader(fileStream);
                 }
                 
-                do
+                do //read lines in file until you find the molecule's line
                 {
                     line = streamReader.ReadLine();
                     molInfo = line.Split('\t');
@@ -159,13 +146,43 @@ namespace IrysIntensity
             streamReader.Close();
         }
 
+        //look for the run directory and return the position of the root directory it was found in. if more than one root directory exists - return -2. if not found - return -1.
+        private static int FindRunPath(string[] rootFilesDirPaths, int runIndex)
+        {
+            int count = 0;
+            int foundIndex = 0;
+            foreach (string rootDir in rootFilesDirPaths)
+            {
+                if (Directory.Exists(Path.Combine(rootDir.Trim(), runIdsToMonths[runIndex + 1], runIdsToNames[runIndex + 1])))
+                {
+                    count++;
+                    foundIndex = Array.IndexOf(rootFilesDirPaths, rootDir);
+                }
+            }
+            if (count == 0)
+            {
+                return -1;
+            }
+            else if (count > 1)
+            {
+                return -2;
+            }
+            else
+            {
+                return foundIndex;
+            }
+        }
 
-        public static void ParseAllMolFiles(string rootFilesDirPath)
+        public static void ParseAllMolFiles(string[] rootFilesDirPath)
         {
             for (int run = 0; run < moleculeListByRun.Count; run++)
             {
-                string FilesDirLocation = Path.Combine(rootFilesDirPath, runIdsToMonths[run + 1], runIdsToNames[run + 1], scanFilesSubDir);
-                ParseRunMolFiles(FilesDirLocation, run);
+                int rootDirIdx = FindRunPath(rootFilesDirPath, run);
+                if (rootDirIdx >= 0)
+                {
+                    string FilesDirLocation = Path.Combine(rootFilesDirPath[rootDirIdx].Trim(), runIdsToMonths[run + 1], runIdsToNames[run + 1], scanFilesSubDir);
+                    ParseRunMolFiles(FilesDirLocation, run);
+                }
             }
         }
     }

@@ -64,6 +64,7 @@ namespace IrysIntensity
             stopWatch.Start();
             string xmapFilePath = XMAP_path_txtbox.Text;
             string bnxFilePath = BNX_path_txtbox.Text;
+            string[] runRootDirs = runs_paths_txtbx.Text.Split('\n');
             if (String.IsNullOrEmpty(xmapFilePath))
             {
                 MessageBox.Show("Must provide path to XMAP file", "Missing file path");
@@ -72,6 +73,11 @@ namespace IrysIntensity
             if (String.IsNullOrEmpty(bnxFilePath))
             {
                 MessageBox.Show("Must provide path to BNX file", "Missing file path");
+                return;
+            }
+            if (String.IsNullOrEmpty(runRootDirs[0]))
+            {
+                MessageBox.Show("Must provide path to root directory of run files", "Missing file path");
                 return;
             }
 
@@ -87,7 +93,7 @@ namespace IrysIntensity
                 MessageBox.Show("Can't open specified BNX file", "Error opening file");
                 return;
             }
-            BNXParser.ParseAllMolFiles(@"X:\runs");
+            BNXParser.ParseAllMolFiles(runRootDirs);
             DatabaseManager.AddAllMolecules(BNXParser.moleculeListByRun, projectID);
             MessageBox.Show(String.Format("time elapsed: {0}", stopWatch.Elapsed.ToString()));
         }
