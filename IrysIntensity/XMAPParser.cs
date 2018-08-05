@@ -17,16 +17,16 @@ namespace IrysIntensity
         }
 
         //parse the XMAP and return number of molecules read, or -1 if file does not exit
-        public static int ParseXmap(string xmap_file_path)
+        public static int ParseXmap(string xmapFilePath)
         {
             int totalMoleculesRead = 0;
 
-            if (!(File.Exists(xmap_file_path)))
+            if (!(File.Exists(xmapFilePath)))
             {
                 return -1;
             }
 
-            using (var fileStream = File.OpenRead(xmap_file_path))
+            using (var fileStream = File.OpenRead(xmapFilePath))
             {
                 using (StreamReader streamReader = new StreamReader(fileStream))
                 {
@@ -46,6 +46,23 @@ namespace IrysIntensity
             }
 
             return totalMoleculesRead;
+        }
+
+        //parse the XMAP alignment string to return a list of tuples where item1 = reference position, item2 = label position
+        public static List<Tuple<int, int>> ParseAlignmentString(string molAlignmentString)
+        {
+            List<Tuple<int,int>> matches = new List<Tuple<int,int>>();
+            molAlignmentString = molAlignmentString.Substring(1, molAlignmentString.Length - 2);
+
+            string[] stringSeperators = new string[] {")("};
+            string[] stringMatchTuples = molAlignmentString.Split(stringSeperators, StringSplitOptions.None);
+            foreach (string stringMatchTuple in stringMatchTuples)
+            {
+                string[] positions = stringMatchTuple.Split(',');
+                Tuple<int, int> match = new Tuple<int, int>(int.Parse(positions[0]), int.Parse(positions[1]));
+                matches.Add(match);
+            }
+            return matches;
         }
     }
 }

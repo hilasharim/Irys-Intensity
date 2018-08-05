@@ -213,6 +213,20 @@ namespace IrysIntensity
         {
             LoadDirectories(runs_paths_txtbx);
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+            //TiffImages.ProcessScanTiff(@"C:\Users\Hila\Downloads\CCITT_1.TIF");
+            TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff");
+            MessageBox.Show(stopWatch.Elapsed.ToString());
+            //TiffImages.ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
+            //MessageBox.Show(stopWatch.Elapsed.ToString());
+            //string elapsedTime = TiffImages.openImageLibtiff();
+            //string alignmentString = "(39,20)(40,19)(42,18)(43,17)(45,16)(46,15)(47,13)(48,12)(49,11)(50,10)(51,9)(52,9)(53,8)(54,7)(55,5)(56,4)(57,3)(58,2)(60,1)";
+            //List<Tuple<int, int>> result = XMAPParser.ParseAlignmentString(alignmentString);
+        }
                 
     }
 }

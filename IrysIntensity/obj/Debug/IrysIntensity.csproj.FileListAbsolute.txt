@@ -20,3 +20,5 @@ C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\
 C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.Sensors.dll
 C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.Shell.dll
 C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\Microsoft.WindowsAPICodePack.ShellExtensions.dll
+C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\BitMiracle.LibTiff.NET40.dll
+C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Debug\BitMiracle.LibTiff.NET40.xml

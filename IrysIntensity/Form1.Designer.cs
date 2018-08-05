@@ -83,6 +83,7 @@
             this.label22 = new System.Windows.Forms.Label();
             this.runs_paths_txtbx = new System.Windows.Forms.TextBox();
             this.openRunLocationsAdd = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -148,9 +149,9 @@
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
             this.label2.Location = new System.Drawing.Point(12, 101);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(144, 13);
+            this.label2.Size = new System.Drawing.Size(181, 13);
             this.label2.TabIndex = 5;
-            this.label2.Text = "Upload Molecules to DB";
+            this.label2.Text = "Upload Molecules to Database";
             // 
             // openXmap
             // 
@@ -207,7 +208,7 @@
             // label5
             // 
             this.label5.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.label5.Location = new System.Drawing.Point(-1, 88);
+            this.label5.Location = new System.Drawing.Point(-1, 93);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(700, 2);
             this.label5.TabIndex = 34;
@@ -409,9 +410,9 @@
             // 
             // filterMolecules
             // 
-            this.filterMolecules.Location = new System.Drawing.Point(624, 293);
+            this.filterMolecules.Location = new System.Drawing.Point(620, 293);
             this.filterMolecules.Name = "filterMolecules";
-            this.filterMolecules.Size = new System.Drawing.Size(75, 23);
+            this.filterMolecules.Size = new System.Drawing.Size(79, 27);
             this.filterMolecules.TabIndex = 36;
             this.filterMolecules.Text = "Apply filters";
             this.filterMolecules.UseVisualStyleBackColor = true;
@@ -579,11 +580,22 @@
             this.openRunLocationsAdd.UseVisualStyleBackColor = true;
             this.openRunLocationsAdd.Click += new System.EventHandler(this.openRunLocationsAdd_Click);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(941, 408);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 55;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1405, 649);
+            this.ClientSize = new System.Drawing.Size(1405, 661);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.openRunLocationsAdd);
             this.Controls.Add(this.runs_paths_txtbx);
             this.Controls.Add(this.label22);
@@ -703,6 +715,7 @@
         private System.Windows.Forms.Label label22;
         private System.Windows.Forms.TextBox runs_paths_txtbx;
         private System.Windows.Forms.Button openRunLocationsAdd;
+        private System.Windows.Forms.Button button1;
     }
 }
 
