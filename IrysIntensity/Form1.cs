@@ -220,6 +220,8 @@ namespace IrysIntensity
             stopWatch.Start();
             //TiffImages.ProcessScanTiff(@"C:\Users\Hila\Downloads\CCITT_1.TIF");
             TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff");
+            //TiffImages.RotateBilinear(null, 0, 0, 0.002, 256, 256);
+            //TiffImages.RotateImage();
             MessageBox.Show(stopWatch.Elapsed.ToString());
             //TiffImages.ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
             //MessageBox.Show(stopWatch.Elapsed.ToString());
