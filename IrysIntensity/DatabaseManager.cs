@@ -130,7 +130,7 @@ namespace IrysIntensity
             }
         }
 
-        private static void AddMolecule(int projectId, int runId, int molId, int scan, int originalId, float length, int column, int rowStart, int rowEnd, float xStart, float yStart, float xEnd, float yEnd,
+        private static void AddMolecule(int projectId, int runId, int molId, int scan, int originalId, float length, int column, int rowStart, int rowEnd, double xStart, double yStart, double xEnd, double yEnd,
             int mapped, int chromId, float start, float end, string orientation, float confidence, string alignmentString, float percentAligned)
         {
             string add_molecule_command = @"INSERT OR IGNORE INTO molecules (projectId, runId, molId, scan, originalID, length, col, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, 
@@ -307,6 +307,32 @@ namespace IrysIntensity
             }
 
             return scanColumns;
+        }
+
+        public static IEnumerable<Molecule> SelectColumnMolecules(int projectId, int runId, int scan, int column)
+        {
+            List<Molecule> columnMolecules = new List<Molecule>();
+            SetConnection();
+            sql_con.Open();
+
+            using (sql_con)
+            {
+                string selectMoleculesCommand = "SELECT xStart, yStart, xEnd, yEnd FROM molecules WHERE projectId = @param1 AND runId = @param2 AND scan = @param3 AND col = @param4";
+                using (sql_cmd = new SQLiteCommand(selectMoleculesCommand, sql_con))
+                {
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param2", runId));
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param3", scan));
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param4", column));
+                    SQLiteDataReader dataReader = sql_cmd.ExecuteReader();
+                    while (dataReader.Read())
+                    {
+                        columnMolecules.Add(new Molecule(Convert.ToDouble(dataReader["xStart"]), Convert.ToDouble(dataReader["xEnd"]), Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"])));
+                    }
+                }
+            }
+
+            return columnMolecules;
         }
     }
 }

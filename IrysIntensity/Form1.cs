@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Diagnostics;
+using System.Threading;
 
 namespace IrysIntensity
 {
@@ -17,6 +18,7 @@ namespace IrysIntensity
     {
 
         int projectID = 1;
+        private readonly SynchronizationContext synchronizationContext;
 
         public IrysIntensity()
         {
@@ -26,6 +28,7 @@ namespace IrysIntensity
                 DatabaseManager.updateComboBox(projectsCmbBox, "name", "id", "projects");
             }
             DatabaseManager.setUpDBOnStartUp();
+            synchronizationContext = SynchronizationContext.Current;
         }
 
         private void LoadNewFile(TextBox txtBox, String fileType)
@@ -214,15 +217,28 @@ namespace IrysIntensity
             LoadDirectories(runs_paths_txtbx);
         }
 
+        public void updateBox(string text) {
+            //column_counter_txtbx.Text = text;
+            synchronizationContext.Post(new SendOrPostCallback(value =>
+            {
+                column_counter_txtbx.Text = value.ToString();
+            }), text);
+        }        
+
         private void button1_Click(object sender, EventArgs e)
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             //TiffImages.ProcessScanTiff(@"C:\Users\Hila\Downloads\CCITT_1.TIF");
-            TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff");
+            Task newTask = Task.Factory.StartNew(() =>
+            {
+                TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", updateBox);
+            });
+            newTask.ContinueWith(_ => MessageBox.Show(stopWatch.Elapsed.ToString()));
+            //TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", column_counter_txtbx);
             //TiffImages.RotateBilinear(null, 0, 0, 0.002, 256, 256);
             //TiffImages.RotateImage();
-            MessageBox.Show(stopWatch.Elapsed.ToString());
+           
             //TiffImages.ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
             //MessageBox.Show(stopWatch.Elapsed.ToString());
             //string elapsedTime = TiffImages.openImageLibtiff();

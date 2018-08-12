@@ -7,11 +7,8 @@ using System.Windows.Media.Imaging;
 using System.IO;
 using System.Diagnostics;
 using BitMiracle.LibTiff.Classic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using System.Drawing.Drawing2D;
-using System.Windows.Media;
+using System.Windows.Forms;
 
 namespace IrysIntensity
 {
@@ -55,6 +52,7 @@ namespace IrysIntensity
             }
         }
 
+        /*Function receives an open tiff file and a frame number, and returns the specified frame's pixel data as a short[][] array*/
         private static short[][] FramePixelsAsShortArray(Tiff scanTiff, short frameNumber)
         {
             short[][] pixelData = new short[imageLength][];
@@ -72,31 +70,7 @@ namespace IrysIntensity
             return pixelData;
         }
 
-        //Function receives an open scan's Tiff stream and a specific  frame number, and returns that frame's pixels as a byte array
-        private static MemoryStream FramePixelsAsByteArray(Tiff scanTiff, short frameNumber)
-        {
-            //byte[][] framePixels = new byte[imageLength][];
-            //scanTiff.SetDirectory(frameNumber);
-            //for (int row = 0; row < imageLength; row++)
-            //{
-            //    framePixels[row] = new byte[scanlineSize];
-            //    scanTiff.ReadScanline(framePixels[row], row);
-            //}
-            //return new MemoryStream(framePixels.SelectMany(a => a).ToArray());
-
-            scanTiff.SetDirectory(frameNumber);
-            MemoryStream stream = new MemoryStream();
-            byte[] data = new byte[scanlineSize];
-            for (int row = 0; row < imageLength; row++)
-            {
-                scanTiff.ReadScanline(data, row);
-                stream.Write(data, 0, scanlineSize);
-            }
-
-            stream.Position = 0;
-            return stream;
-        }
-
+        /*Function to find the value of pixel (x,y) using bilinear interpolation (4 closest points)*/
         public static double PixelBilinearInterpolation(short[][] pixelValues, double x, double y)
         {
             int xBase = (int)x;
@@ -110,19 +84,10 @@ namespace IrysIntensity
             double upperAverage = upperLeft + xFraction * (upperRight - upperLeft);
             double lowerAverage = lowerLeft + xFraction * (lowerRight - lowerLeft);
             return lowerAverage + yFraction * (upperAverage - lowerAverage);
-
-            //int lowerLeft = pixelValues[yBase][xBase];
-            //int lowerRight = pixelValues[yBase][xBase + 1];
-            //int upperLeft = pixelValues[yBase + 1][xBase];
-            //int upperRight = pixelValues[yBase + 1][xBase + 1];
-            //double upperAverage, lowerAverage;
-            //upperAverage = upperLeft + xFraction * (upperRight - upperLeft);
-            //lowerAverage = lowerLeft + xFraction * (lowerRight - lowerLeft);
-            //short newPixelValue = (short)(lowerAverage + yFraction * (upperAverage - lowerAverage) + 0.5);
-            //return newPixelValue;
         }
 
-        public static short[][] RotateBilinear(short[][] pixelValues, /*int pixelX, int pixelY,*/ double radians, int rotationCenterX, int rotationCenterY)
+        /*Function to rotate an image represented as a short[][] array around a given point, using bilinear interpolation without resizing*/
+        private static short[][] RotateBilinear(short[][] pixelValues, double radians, int rotationCenterX, int rotationCenterY)
         {
             short[][] rotatedPixels = new short[imageLength][];
             double rotationAngle = -radians;
@@ -151,199 +116,122 @@ namespace IrysIntensity
                 }
             }
             return rotatedPixels;
-
-
-            //double rotatedX = (pixelX - rotationCenterX) * Math.Cos(radians) - (pixelY - rotationCenterY) * Math.Sin(radians) + rotationCenterX;
-            //double rotatedY = (pixelX - rotationCenterX) * Math.Sin(radians) + (pixelY - rotationCenterY) * Math.Cos(radians) + rotationCenterY;
-            //if (rotatedX < 0) rotatedX = 0;
-            //if (rotatedX > imageWidth - 1) rotatedX = imageWidth - 1;
-            //if (rotatedY < 0) rotatedY = 0;
-            //if (rotatedY > imageLength) rotatedY = imageLength;
-            //return PixelBilinearInterpolation(pixelValues, rotatedX, rotatedY);
-
-            //short bottomLeftVal, bottomRightVal, upperLeftVal, upperRightVal;
-            //double factorX, factorY, rotatedPixelVal;
-
-            //int leftX = (int)Math.Floor(rotatedX);
-            //int rightX = (int)Math.Ceiling(rotatedX);
-            //int upperY = (int)Math.Ceiling(rotatedY);
-            //int bottomY = (int)Math.Floor(rotatedY);
-
-            //leftX = Math.Max(0, leftX);
-            //bottomY = Math.Max(0, bottomY);
-            //leftX = Math.Min(imageWidth - 1, leftX);
-            //bottomY = Math.Min(imageLength - 1, bottomY);
-            //rightX = Math.Min(imageWidth - 1, rightX);
-            //rightX = Math.Max(0, rightX);
-            //upperY = Math.Min(imageLength - 1, upperY);
-            //upperY = Math.Max(0, upperY);
-
-            //bottomLeftVal = pixelValues[bottomY][leftX];
-            //bottomRightVal = pixelValues[bottomY][rightX];
-            //upperRightVal = pixelValues[upperY][rightX];
-            //upperLeftVal = pixelValues[upperY][leftX];
-
-            //if (rightX == leftX)
-            //{
-            //    factorX = 1;
-            //}
-            //else
-            //{
-            //    factorX = (rightX - rotatedX) / (rightX - leftX); 
-            //}
-
-            //if (bottomY == upperY)
-            //{
-            //    factorY = 1;
-            //}
-            //else
-            //{
-            //    factorY = (bottomY - rotatedY) / (bottomY - upperY);
-            //}
-
-            //rotatedPixelVal = factorY * (factorX * upperLeftVal + (1 - factorX) * upperRightVal) + (1 - factorY) * (factorX * bottomLeftVal + (1 - factorX) * bottomRightVal);
-            //return (short)rotatedPixelVal;
         }
 
-        private static Tuple<int, int> RotatePixel(int pixelX, int pixelY, double radians, int rotationCenterX, int rotationCenterY)
+        private static short[][] Rotate180AroundCenter(short[][] pixelValues)
         {
-            int rotatedX = (int)(Math.Round((pixelX - rotationCenterX) * Math.Cos(radians) - (pixelY - rotationCenterY) * Math.Sin(radians))) + rotationCenterX;
-            int rotatedY = (int)(Math.Round((pixelX - rotationCenterX) * Math.Sin(radians) + (pixelY - rotationCenterY) * Math.Cos(radians))) + rotationCenterY;
-            return new Tuple<int, int>(rotatedX, rotatedY);
+            short[][] rotatedPixels = new short[imageLength][];
+            for (int row = 0; row < imageLength; row++)
+            {
+                rotatedPixels[row] = new short[imageWidth];
+                for (int col = 0; col < imageWidth; col++)
+                {
+                    rotatedPixels[row][col] = pixelValues[imageLength - 1 - row][imageWidth - 1 - col];
+                }
+            }
+            return rotatedPixels;
         }
 
-        public static void RotateImage()
+        private static void TranslateX(short[][] pixelValues, int offset)
         {
-            Tuple<int, int> result = RotatePixel(0, 0, 0.1 * Math.PI / 180, 256, 256);
-            Tuple<int, int> newResult = RotatePixel(result.Item1, result.Item2, -0.1 * Math.PI / 180, 256, 256);
+            if (offset == 0)
+                return;
+            short[] background = new short[Math.Abs(offset)];
+            if (offset > 0)
+            {
+                for (int row = 0; row < imageLength; row++)
+                {
+                    Array.Copy(pixelValues[row], 0, pixelValues[row], offset, pixelValues[row].Length - offset);
+                    Array.Copy(background, pixelValues[row], offset);
+                }   
+            }
+            else
+            {
+                for (int row = 0; row < imageLength; row++)
+                {
+                    Array.Copy(pixelValues[row], -offset, pixelValues[row], 0, pixelValues[row].Length + offset);
+                    Array.Copy(background, 0, pixelValues[row], pixelValues[row].Length + offset, -offset);
+                }
+            }
         }
 
-        //private static BitmapImage GetFrameImage(Tiff scanTiff, short frameNumber)
+        /*destinationPixelValues is large enough to conatin the final merged image, and its first rows are of images already read and merged. Merging by averaging the values
+         assumes yOverlap is negative value*/
+        private static void MergeOnYOverlap(short[][] destinationPixelValues, short[][] imageToMergePixelValues, int yOverlap, int rowNumber, int cumSumYOverlap)
+        {
+            int destinationStartRow = imageLength * (rowNumber - 1) + cumSumYOverlap;
+            double averageIncrement;
+            double weight;
+            for (int row = 0; row < -yOverlap; row++)
+            {
+                averageIncrement = 1.0 / (-yOverlap);
+                weight = row * averageIncrement;
+                for (int col = 0; col < imageWidth; col++)
+                {
+                    destinationPixelValues[destinationStartRow + row][col] = (short)(weight * imageToMergePixelValues[row][col] + (1 - weight) * destinationPixelValues[destinationStartRow + row][col]);
+                }
+            }
+
+            destinationStartRow += (-yOverlap); 
+            for (int row = 0; row < imageLength + yOverlap; row++)
+            {
+                destinationPixelValues[destinationStartRow + row] = imageToMergePixelValues[-yOverlap+row];
+            }
+        }
+
+        //private static Bitmap GetBitmap16Bit(Tiff tiff, short frameNumber)
         //{
-        //    using (MemoryStream ms = FramePixelsAsByteArray(scanTiff, frameNumber))
+        //    Bitmap imageResult;
+        //    if (bitsPerPixel != 16) {
+        //        return null;
+        //    }
+        //    if (spp != 1)
         //    {
-        //        BitmapImage image = new BitmapImage();
-        //        image.BeginInit();
-        //        image.Format
-        //        image.CacheOption = BitmapCacheOption.OnLoad;
-        //        image.StreamSource = ms;
-        //        image.EndInit();
-        //        return image;
+        //        return null;
+        //    }
+        //    tiff.SetDirectory(frameNumber);
+        //    byte[] buffer = new byte[scanlineSize];
+        //    imageResult = new Bitmap(imageWidth, imageLength, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
+
+        //    short[] buffer16Bit = null;
+        //    for (int row = 0; row < imageLength; row++)
+        //    {
+        //        Rectangle imRect = new Rectangle(0, row, imageWidth, 1);
+        //        BitmapData imgData = imageResult.LockBits(imRect, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
+        //        if (buffer16Bit == null)
+        //        {
+        //            buffer16Bit = new short[scanlineSize / sizeof(Int16)];
+        //        }
+        //        else
+        //        {
+        //            Array.Clear(buffer16Bit, 0, buffer16Bit.Length);
+        //        }
+                
+        //        tiff.ReadScanline(buffer, row);
+        //        Buffer.BlockCopy(buffer, 0, buffer16Bit, 0, buffer.Length);
+        //        Marshal.Copy(buffer16Bit, 0, imgData.Scan0, buffer16Bit.Length);
+        //        imageResult.UnlockBits(imgData);
+        //    }
+
+        //    return imageResult;
+        //}
+
+        //private static void SaveBitmapAsTiff(BitmapSource bitmap, string fileName)
+        //{
+        //    //BitmapData imgdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+        //    //BitmapSource src = BitmapSource.Create(imgdata.Width, imgdata.Height, bitmap.HorizontalResolution, bitmap.VerticalResolution, System.Windows.Media.PixelFormats.Gray16, null,
+        //      //  imgdata.Scan0, imgdata.Height * imgdata.Stride, imgdata.Stride);
+        //    //bitmap.UnlockBits(imgdata);
+        //    using (FileStream stream = new FileStream(fileName, FileMode.Create))
+        //    {
+        //        TiffBitmapEncoder encoder = new TiffBitmapEncoder();
+        //        encoder.Compression = TiffCompressOption.Zip;
+        //        //encoder.Frames.Add(BitmapFrame.Create(src));
+        //        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        //        encoder.Save(stream);
         //    }
         //}
 
-        private static Bitmap GetBitmap16Bit(Tiff tiff, short frameNumber)
-        {
-            Bitmap imageResult;
-            if (bitsPerPixel != 16) {
-                return null;
-            }
-            if (spp != 1)
-            {
-                return null;
-            }
-            tiff.SetDirectory(frameNumber);
-            byte[] buffer = new byte[scanlineSize];
-            imageResult = new Bitmap(imageWidth, imageLength, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
-
-            short[] buffer16Bit = null;
-            for (int row = 0; row < imageLength; row++)
-            {
-                Rectangle imRect = new Rectangle(0, row, imageWidth, 1);
-                BitmapData imgData = imageResult.LockBits(imRect, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
-                if (buffer16Bit == null)
-                {
-                    buffer16Bit = new short[scanlineSize / sizeof(Int16)];
-                }
-                else
-                {
-                    Array.Clear(buffer16Bit, 0, buffer16Bit.Length);
-                }
-                
-                tiff.ReadScanline(buffer, row);
-                Buffer.BlockCopy(buffer, 0, buffer16Bit, 0, buffer.Length);
-                Marshal.Copy(buffer16Bit, 0, imgData.Scan0, buffer16Bit.Length);
-                imageResult.UnlockBits(imgData);
-            }
-
-            return imageResult;
-        }
-
-        private static void SaveBitmapAsTiff(BitmapSource bitmap, string fileName)
-        {
-            //BitmapData imgdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-            //BitmapSource src = BitmapSource.Create(imgdata.Width, imgdata.Height, bitmap.HorizontalResolution, bitmap.VerticalResolution, System.Windows.Media.PixelFormats.Gray16, null,
-              //  imgdata.Scan0, imgdata.Height * imgdata.Stride, imgdata.Stride);
-            //bitmap.UnlockBits(imgdata);
-            using (FileStream stream = new FileStream(fileName, FileMode.Create))
-            {
-                TiffBitmapEncoder encoder = new TiffBitmapEncoder();
-                encoder.Compression = TiffCompressOption.Zip;
-                //encoder.Frames.Add(BitmapFrame.Create(src));
-                encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                encoder.Save(stream);
-            }
-        }
-
-        private static double RadiansToDegrees(double radians)
-        {
-            return ((180 / Math.PI) * radians);
-        }
-
-        private static TransformedBitmap RotateBitmap(Bitmap bitmap, RotateTransform rotateTransform)
-        {
-            BitmapData imgdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-            BitmapSource src = BitmapSource.Create(imgdata.Width, imgdata.Height, bitmap.HorizontalResolution, bitmap.VerticalResolution, System.Windows.Media.PixelFormats.Gray16, null,
-                imgdata.Scan0, imgdata.Height * imgdata.Stride, imgdata.Stride);
-            bitmap.UnlockBits(imgdata);
-            TransformedBitmap bmp = new TransformedBitmap(src, rotateTransform);
-            return bmp;
-        }
-
-        private static Bitmap RotateImage(Bitmap bmp, double radians)
-        {
-            Bitmap rotatedImage = new Bitmap(bmp.Width, bmp.Height);
-            GraphicsPath gp = new GraphicsPath();
-            gp.AddPolygon(new Point[] { new Point(0, 0), new Point(bmp.Width, 0), new Point(0, bmp.Height) });
-            System.Drawing.Drawing2D.Matrix rotateAtCenter = new System.Drawing.Drawing2D.Matrix();
-            rotateAtCenter.RotateAt((float)RadiansToDegrees(radians), new PointF(bmp.Width / 2f, bmp.Height / 2f));
-            gp.Transform(rotateAtCenter);
-            PointF[] pts = gp.PathPoints;
-
-            Bitmap rotImg = new Bitmap(bmp.Width, bmp.Height);
-            Graphics g = Graphics.FromImage(rotImg);
-            g.DrawImage(bmp, pts);
-
-            //BitmapData bData = rotImg.LockBits(new Rectangle(new Point(), rotImg.Size), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
-            //int byteCount = bData.Stride * (rotImg.Height);
-            //short[] flatArr = new short[byteCount / sizeof(Int16)];
-
-            //RotateTransform rotateAtCenter = new RotateTransform((float)RadiansToDegrees(radians), bmp.Width / 2, bmp.Height / 2);
-            
-
-            //Matrix rotateAtCenter = new Matrix();
-            //rotateAtCenter.RotateAt((float)RadiansToDegrees(radians), new PointF(bmp.Width / 2f, bmp.Height / 2f));
-            //using (Graphics gr = Graphics.FromImage(rotatedImage))
-            //{
-            //    gr.InterpolationMode = InterpolationMode.Bilinear;
-            //    gr.Clear(Color.LightBlue);
-            //    gr.Transform = rotateAtCenter;
-            //    gr.DrawImage(bmp, 0, 0);
-            //}
-
-            //using (Graphics g = Graphics.FromImage(bmp))
-            //{
-            //    // Set the rotation point to the center of the matrix
-            //    g.TranslateTransform(bmp.Width / 2, bmp.Height / 2);
-            //    // Rotate
-            //    g.RotateTransform((float)RadiansToDegrees(radians));
-            //    // Restore rotation point in the matrix
-            //    g.TranslateTransform(-bmp.Width / 2, -bmp.Height / 2);
-            //    // Draw image on the bitmap
-            //    g.DrawImage(bmp, new Point(0, 0));
-            //}
-            return rotatedImage;
-        }
 
         //Calculate the 12 frames that need to be opened for a specific column number in a specific channel, in top to bottom order.
         private static void GetFrameNumbers(int column, int channel, short[] columnChannelFrameNumbers)
@@ -368,36 +256,90 @@ namespace IrysIntensity
         }
 
 
-        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber)
+        private static IEnumerable<double[]> getMoleculesPixels(short[][] columnPixelData, IEnumerable<Molecule> moleculePositions)
         {
-            short[][][] columnFramesPixelData = new short[rowsPerColumn][][];
-            //Bitmap[] columnBitmaps = new Bitmap[rowsPerColumn];
-            //RotateTransform rotateAtCenter = new RotateTransform(0.1, 256, 256);
-            //BitmapImage[] columnBitmaps = new BitmapImage[rowsPerColumn];
+            List<double[]> moleculesPixels = new List<double[]>();
+            foreach (Molecule molecule in moleculePositions)
+            {
+                int molRowStart = (int)Math.Floor(molecule.YStart);
+                int molRowEnd = (int)Math.Ceiling(molecule.YEnd);
+                int molColStart = (int)Math.Floor(molecule.XStart);
+                int molColEnd = (int)Math.Ceiling(molecule.XEnd);
+                int molLength = molRowEnd - molRowStart;
+                int molWidth = molColEnd - molColStart;
+
+                double[] moleculePixelData = new double[molLength];
+                for (int row = molRowStart; row < molRowEnd; row++)
+                {
+                    double rowSum = 0;
+                    for (int col = molColStart; col < molColEnd; col++)
+                    {
+                        rowSum += columnPixelData[row][col];
+                    }
+                    moleculePixelData[row - molRowStart] = (rowSum / molWidth);
+                }
+                moleculesPixels.Add(moleculePixelData);
+            }
+            return moleculesPixels;
+        }
+
+
+        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, Tuple<float, int, int>> FOVShifts)
+        {
+            //short[][][] columnFramesPixelData = new short[rowsPerColumn][][];
+            IEnumerable<Molecule> moleculePositions = DatabaseManager.SelectColumnMolecules(1, 1, 1, columnNumber);
+            short[][] framePixels;
+            short[][] columnPixelData = new short[imageLength * rowsPerColumn /*+ totalYShift*/][]; //totalYShift is a negative value
+            float angle;
+            int xShift, yShift;
+
+            for (int row = 0; row < imageLength * rowsPerColumn /*+ totalYShift*/; row++)
+            {
+                columnPixelData[row] = new short[imageWidth];
+            }
+
             for (int currentChannel = 0; currentChannel <1 /*totalChannels*/; currentChannel++)
             {
-                int currPos = 0;
+                int rowNumber = 1;
+                int cumSumYShift = 0;
+                int cumSumXShift = 0;
+                float cumsumAngle = 0;
                 GetFrameNumbers(columnNumber, currentChannel, columnFrames);
                 foreach (short frameNumber in columnFrames)
                 {
-                    columnFramesPixelData[currPos] = FramePixelsAsShortArray(scanTiff, frameNumber);
-                    short[][] rotatedImage = RotateBilinear(columnFramesPixelData[currPos], 0.002, imageWidth / 2, imageLength / 2);
-                    //short newVal = RotateBilinear(columnFramesPixelData[currPos], 0, 0, 0.0019, imageWidth / 2, imageLength / 2);
-                    //columnBitmaps[currPos] = GetFrameImage(scanTiff, frameNumber);
-                    //currPos++;
-                    //columnBitmaps[currPos] = GetBitmap16Bit(scanTiff, frameNumber);
+                    Tuple<int, int> colRow = new Tuple<int, int>(columnNumber, rowNumber);
+                    angle = FOVShifts[colRow].Item1;
+                    xShift = FOVShifts[colRow].Item2;
+                    yShift = FOVShifts[colRow].Item3;
+                    cumSumYShift += /*(int)(Math.Floor(Math.Sin(Math.PI / 2 - angle)* yShift))*/ yShift;
+                    cumSumXShift -= (int)Math.Ceiling(Math.Cos(angle)*xShift) /*xShift*/;
+                    framePixels = FramePixelsAsShortArray(scanTiff, frameNumber);
+                    TranslateX(framePixels, cumSumXShift /*-xShift*/);
+                    //framePixels = RotateBilinear(framePixels, angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
+                    framePixels = RotateBilinear(framePixels, (Math.PI - angle), (imageWidth - 1) / 2, (imageLength - 1) / 2);
+                    //framePixels = Rotate180AroundCenter(framePixels);
+                    //TranslateX(framePixels, cumSumXShift /*xShift*/);
+                    MergeOnYOverlap(columnPixelData, framePixels, yShift, rowNumber, cumSumYShift);
+                    rowNumber++;
+                }
 
-                    //Bitmap rotated = RotateImage(columnBitmaps[currPos], 0.0174533);
-                    //TransformedBitmap bmp = RotateBitmap(columnBitmaps[currPos], rotateAtCenter);
-                    //SaveBitmapAsTiff(bmp, "new" + currPos.ToString() + ".tif");
-                    //SaveBitmapAsTiff(bmp, "new" + currPos.ToString() + ".tif");
-                    currPos++;
+                //IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnPixelData, moleculePositions);
+
+                using (StreamWriter sw = new StreamWriter(@"column2_cumsum_x_cos_angle_rotate_180_minus_angle.txt"))
+                {
+                    for (int row = 0; row < imageLength * rowsPerColumn; row++)
+                    {
+                        string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
+                        sw.WriteLine(print);
+                    }
                 }
             }
 
         }
 
-        public static void ProcessScanTiff(string scanTiffFilePath)
+        public delegate void UpdateBox(string s);
+
+        public static void ProcessScanTiff(string scanTiffFilePath, UpdateBox updateBox)
         {
             using (Tiff scanImages = Tiff.Open(scanTiffFilePath, "r"))
             {
@@ -410,9 +352,14 @@ namespace IrysIntensity
                 bitsPerPixel = bitsPerSample[0].ToShort();
                 spp = samplesPerPixel[0].ToShort();
                 scanlineSize = scanImages.ScanlineSize();
-                for (int currColumn = 1; currColumn <=1 /*columnPerScan*/; currColumn++)
+
+                Dictionary<Tuple<int, int>, Tuple<float, int, int>> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
+
+                for (int currColumn = 2; currColumn <=2 /*columnPerScan*/; currColumn++)
                 {
-                    ProcessColumnImages(scanImages, currColumn);
+                    
+                    ProcessColumnImages(scanImages, currColumn, FOVData);
+                    updateBox(currColumn.ToString());
                 }
             }
         }

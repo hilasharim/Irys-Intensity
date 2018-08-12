@@ -84,6 +84,7 @@
             this.runs_paths_txtbx = new System.Windows.Forms.TextBox();
             this.openRunLocationsAdd = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.column_counter_txtbx = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -590,11 +591,20 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // column_counter_txtbx
+            // 
+            this.column_counter_txtbx.Location = new System.Drawing.Point(1075, 408);
+            this.column_counter_txtbx.Name = "column_counter_txtbx";
+            this.column_counter_txtbx.Size = new System.Drawing.Size(100, 20);
+            this.column_counter_txtbx.TabIndex = 56;
+            this.column_counter_txtbx.Text = "0";
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1405, 661);
+            this.Controls.Add(this.column_counter_txtbx);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.openRunLocationsAdd);
             this.Controls.Add(this.runs_paths_txtbx);
@@ -716,6 +726,7 @@
         private System.Windows.Forms.TextBox runs_paths_txtbx;
         private System.Windows.Forms.Button openRunLocationsAdd;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.TextBox column_counter_txtbx;
     }
 }
 

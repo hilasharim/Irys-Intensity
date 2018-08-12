@@ -16,10 +16,10 @@ namespace IrysIntensity
         public int Column {get; set;}
         public int RowStart { get; set; }
         public int RowEnd { get; set; }
-        public float XStart { get; set; }
-        public float XEnd { get; set; }
-        public float YStart { get; set; }
-        public float YEnd { get; set; }
+        public double XStart { get; set; }
+        public double XEnd { get; set; }
+        public double YStart { get; set; }
+        public double YEnd { get; set; }
 
         public Molecule(int moleculeId, float length, int runId, int scan, int originalId)
         {
@@ -28,6 +28,14 @@ namespace IrysIntensity
             this.RunId = runId;
             this.Scan = scan;
             this.OriginalId = originalId;
+        }
+
+        public Molecule(double xStart, double xEnd, double yStart, double yEnd)
+        {
+            this.XStart = xStart;
+            this.XEnd = xEnd;
+            this.YStart = yStart;
+            this.YEnd = yEnd;
         }
     }
 }

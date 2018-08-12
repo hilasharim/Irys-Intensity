@@ -137,10 +137,14 @@ namespace IrysIntensity
                 mol.Column = int.Parse(molInfo[5]);
                 mol.RowStart = int.Parse(molInfo[6]);
                 mol.RowEnd = int.Parse(molInfo[7]);
-                mol.XStart = float.Parse(molInfo[8]);
-                mol.XEnd = float.Parse(molInfo[10]);
-                mol.YStart = float.Parse(molInfo[9]);
-                mol.YEnd = float.Parse(molInfo[11]);
+                //mol.XStart = float.Parse(molInfo[8]);
+                //mol.XEnd = float.Parse(molInfo[10]);
+                //mol.YStart = float.Parse(molInfo[9]);
+                //mol.YEnd = float.Parse(molInfo[11]);
+                mol.XStart = float.Parse(molInfo[12]);
+                mol.XEnd = float.Parse(molInfo[13]);
+                mol.YStart = float.Parse(molInfo[14]);
+                mol.YEnd = float.Parse(molInfo[15]);
             }
             fileStream.Close();
             streamReader.Close();
