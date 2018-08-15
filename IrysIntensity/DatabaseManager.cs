@@ -61,8 +61,6 @@ namespace IrysIntensity
                     ExecuteNonQueryCmd(command_text);
                 }
             }
-            
-           // sql_con.Close();
         }
 
         public static void updateComboBox(ComboBox cmbBoxToUpdate, string display, string value, string tableName)
@@ -100,8 +98,6 @@ namespace IrysIntensity
                     ExecuteNonQueryCmd(add_project_command);
                 }
             }
-            
-           // sql_con.Close();
         }
 
         public static void AddRun(int projectId, string runName, string runMonth)
@@ -194,8 +190,6 @@ namespace IrysIntensity
                     transaction.Commit();
                 }
             }
-            
-            //sql_con.Close();
         }
 
         private static void AddListToINCmd(int[] valuesArray, int startParamNum)
@@ -205,7 +199,6 @@ namespace IrysIntensity
             {
                 string newParamName = String.Format("@param{0}", startParamNum++);
                 paramNames.Add(newParamName);
-                //SQLiteParameter newParameter = new SQLiteParameter(newParamName, value);
                 sql_cmd.Parameters.Add(new SQLiteParameter(newParamName, value));
             }
 
@@ -317,7 +310,7 @@ namespace IrysIntensity
 
             using (sql_con)
             {
-                string selectMoleculesCommand = "SELECT xStart, yStart, xEnd, yEnd FROM molecules WHERE projectId = @param1 AND runId = @param2 AND scan = @param3 AND col = @param4";
+                string selectMoleculesCommand = "SELECT rowStart, rowEnd, xStart, yStart, xEnd, yEnd FROM molecules WHERE projectId = @param1 AND runId = @param2 AND scan = @param3 AND col = @param4";
                 using (sql_cmd = new SQLiteCommand(selectMoleculesCommand, sql_con))
                 {
                     sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
@@ -327,7 +320,9 @@ namespace IrysIntensity
                     SQLiteDataReader dataReader = sql_cmd.ExecuteReader();
                     while (dataReader.Read())
                     {
-                        columnMolecules.Add(new Molecule(Convert.ToDouble(dataReader["xStart"]), Convert.ToDouble(dataReader["xEnd"]), Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"])));
+                        columnMolecules.Add(new Molecule(Convert.ToInt32(dataReader["rowStart"]), Convert.ToInt32(dataReader["rowEnd"]),
+                                                Convert.ToDouble(dataReader["xStart"]), Convert.ToDouble(dataReader["xEnd"]), 
+                                                Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"])));
                     }
                 }
             }

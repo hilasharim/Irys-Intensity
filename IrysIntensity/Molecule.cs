@@ -30,8 +30,10 @@ namespace IrysIntensity
             this.OriginalId = originalId;
         }
 
-        public Molecule(double xStart, double xEnd, double yStart, double yEnd)
+        public Molecule(int rowStart, int rowEnd, double xStart, double xEnd, double yStart, double yEnd)
         {
+            this.RowStart = rowStart;
+            this.RowEnd = rowEnd;
             this.XStart = xStart;
             this.XEnd = xEnd;
             this.YStart = yStart;

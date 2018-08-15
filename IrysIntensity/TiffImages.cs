@@ -25,8 +25,8 @@ namespace IrysIntensity
         static short spp; //tiff samples per pixel: 1 for greyscale, 3 for RGB
 
 
-        //Parse a scan's FOV file to return a dictionary where the keys are a tuple (col, row) and the values are a tuple (angle, xShift, yShift). returns null if FOV file not found
-        private static Dictionary<Tuple<int, int>, Tuple<float, int, int>> ParseFOVFile(string fovFilePath)
+        //Parse a scan's FOV file to return a dictionary where the keys are a tuple (col, row) and the values are FOV instances. returns null if FOV file not found
+        private static Dictionary<Tuple<int, int>, FOV> ParseFOVFile(string fovFilePath)
         {
             if (!File.Exists(fovFilePath))
             {
@@ -37,14 +37,29 @@ namespace IrysIntensity
             {
                 using (StreamReader streamReader = new StreamReader(fileStream))
                 {
-                    Dictionary<Tuple<int, int>, Tuple<float, int, int>> fovAnglesAndShifts = new Dictionary<Tuple<int, int>, Tuple<float, int, int>>();
+                    Dictionary<Tuple<int, int>, FOV> fovAnglesAndShifts = new Dictionary<Tuple<int, int>, FOV>();
+                    int cumsumXShift = 0;
+                    int cumsumYShift = 0;
+                    int prevCol = 0;
                     string line;
                     while ((line = streamReader.ReadLine()) != null)
                     {
                         if (Char.IsNumber(line[0]))
                         {
                             string[] fovInfo = line.Split('\t');
-                            fovAnglesAndShifts[new Tuple<int, int>(int.Parse(fovInfo[2]), int.Parse(fovInfo[1]))] = new Tuple<float, int, int>(float.Parse(fovInfo[3]), int.Parse(fovInfo[4]), int.Parse(fovInfo[5]));
+                            if (int.Parse(fovInfo[2]) != prevCol)
+                            {
+                                cumsumXShift = 0;
+                                cumsumYShift = 0;
+                                prevCol = int.Parse(fovInfo[2]);
+                            }
+                            else
+                            {
+                                cumsumXShift += int.Parse(fovInfo[4]);
+                                cumsumYShift += int.Parse(fovInfo[5]);
+                            }
+                            FOV fov = new FOV(double.Parse(fovInfo[3]), int.Parse(fovInfo[4]), int.Parse(fovInfo[5]), cumsumXShift, cumsumYShift);
+                            fovAnglesAndShifts[new Tuple<int, int>(int.Parse(fovInfo[2]), int.Parse(fovInfo[1]))] = fov;
                         }
                     }
                     return fovAnglesAndShifts;
@@ -86,28 +101,37 @@ namespace IrysIntensity
             return lowerAverage + yFraction * (upperAverage - lowerAverage);
         }
 
+        private static Tuple<double, double> GetRotatedXYPosition(double radians, double rotationCenterX, double rotationCenterY, double x, double y)
+        {
+            double angleCos = Math.Cos(radians);
+            double angleSin = Math.Sin(radians);
+            double rotatedX = (x - rotationCenterX) * angleCos - (y - rotationCenterY) * angleSin + rotationCenterX;
+            double rotatedY = (x - rotationCenterX) * angleSin + (y - rotationCenterY) * angleCos + rotationCenterY;
+            if ((rotatedX >= -0.01) && (rotatedX < imageWidth) && (rotatedY >= -0.01) && (rotatedY < imageLength))
+            {
+                if (rotatedX < 0) rotatedX = 0;
+                if (rotatedX > imageWidth - 1) rotatedX = imageWidth - 1.001;
+                if (rotatedY < 0) rotatedY = 0;
+                if (rotatedY > imageLength - 1) rotatedY = imageLength - 1.001;
+            }
+            return new Tuple<double, double>(rotatedX, rotatedY); 
+        }
+
         /*Function to rotate an image represented as a short[][] array around a given point, using bilinear interpolation without resizing*/
-        private static short[][] RotateBilinear(short[][] pixelValues, double radians, int rotationCenterX, int rotationCenterY)
+        private static short[][] RotateBilinear(short[][] pixelValues, double radians, double rotationCenterX, double rotationCenterY)
         {
             short[][] rotatedPixels = new short[imageLength][];
             double rotationAngle = -radians;
-            double angleCos = Math.Cos(rotationAngle);
-            double angleSin = Math.Sin(rotationAngle);
-            double rotatedX, rotatedY;
+            Tuple<double, double> rotatedPixelPos;
             for (int row = 0; row < imageLength; row++)
             {
                 rotatedPixels[row] = new short[imageWidth];
                 for (int col = 0; col < imageWidth; col++)
                 {
-                    rotatedX = (col - rotationCenterX) * angleCos - (row - rotationCenterY) * angleSin + rotationCenterX;
-                    rotatedY = (col - rotationCenterX) * angleSin + (row - rotationCenterY) * angleCos + rotationCenterY;
-                    if ((rotatedX >= -0.01) && (rotatedX < imageWidth) && (rotatedY >= -0.01) && (rotatedY < imageLength))
+                    rotatedPixelPos = GetRotatedXYPosition(rotationAngle, rotationCenterX, rotationCenterY, col, row);
+                    if ((rotatedPixelPos.Item1 >= 0) && (rotatedPixelPos.Item1 <= imageWidth - 1.001) && (rotatedPixelPos.Item2 >= 0) && (rotatedPixelPos.Item2 < imageLength - 1.001))
                     {
-                        if (rotatedX < 0) rotatedX = 0;
-                        if (rotatedX > imageWidth - 1) rotatedX = imageWidth - 1.001;
-                        if (rotatedY < 0) rotatedY = 0;
-                        if (rotatedY > imageLength - 1) rotatedY = imageLength - 1.001;
-                        rotatedPixels[row][col] = (short)(PixelBilinearInterpolation(pixelValues, rotatedX, rotatedY) + 0.5);
+                        rotatedPixels[row][col] = (short)(PixelBilinearInterpolation(pixelValues, rotatedPixelPos.Item1, rotatedPixelPos.Item2) + 0.5);
                     }
                     else
                     {
@@ -179,60 +203,6 @@ namespace IrysIntensity
             }
         }
 
-        //private static Bitmap GetBitmap16Bit(Tiff tiff, short frameNumber)
-        //{
-        //    Bitmap imageResult;
-        //    if (bitsPerPixel != 16) {
-        //        return null;
-        //    }
-        //    if (spp != 1)
-        //    {
-        //        return null;
-        //    }
-        //    tiff.SetDirectory(frameNumber);
-        //    byte[] buffer = new byte[scanlineSize];
-        //    imageResult = new Bitmap(imageWidth, imageLength, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
-
-        //    short[] buffer16Bit = null;
-        //    for (int row = 0; row < imageLength; row++)
-        //    {
-        //        Rectangle imRect = new Rectangle(0, row, imageWidth, 1);
-        //        BitmapData imgData = imageResult.LockBits(imRect, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
-        //        if (buffer16Bit == null)
-        //        {
-        //            buffer16Bit = new short[scanlineSize / sizeof(Int16)];
-        //        }
-        //        else
-        //        {
-        //            Array.Clear(buffer16Bit, 0, buffer16Bit.Length);
-        //        }
-                
-        //        tiff.ReadScanline(buffer, row);
-        //        Buffer.BlockCopy(buffer, 0, buffer16Bit, 0, buffer.Length);
-        //        Marshal.Copy(buffer16Bit, 0, imgData.Scan0, buffer16Bit.Length);
-        //        imageResult.UnlockBits(imgData);
-        //    }
-
-        //    return imageResult;
-        //}
-
-        //private static void SaveBitmapAsTiff(BitmapSource bitmap, string fileName)
-        //{
-        //    //BitmapData imgdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-        //    //BitmapSource src = BitmapSource.Create(imgdata.Width, imgdata.Height, bitmap.HorizontalResolution, bitmap.VerticalResolution, System.Windows.Media.PixelFormats.Gray16, null,
-        //      //  imgdata.Scan0, imgdata.Height * imgdata.Stride, imgdata.Stride);
-        //    //bitmap.UnlockBits(imgdata);
-        //    using (FileStream stream = new FileStream(fileName, FileMode.Create))
-        //    {
-        //        TiffBitmapEncoder encoder = new TiffBitmapEncoder();
-        //        encoder.Compression = TiffCompressOption.Zip;
-        //        //encoder.Frames.Add(BitmapFrame.Create(src));
-        //        encoder.Frames.Add(BitmapFrame.Create(bitmap));
-        //        encoder.Save(stream);
-        //    }
-        //}
-
-
         //Calculate the 12 frames that need to be opened for a specific column number in a specific channel, in top to bottom order.
         private static void GetFrameNumbers(int column, int channel, short[] columnChannelFrameNumbers)
         {   
@@ -256,27 +226,38 @@ namespace IrysIntensity
         }
 
 
-        private static IEnumerable<double[]> getMoleculesPixels(short[][] columnPixelData, IEnumerable<Molecule> moleculePositions)
+        private static IEnumerable<double[]> getMoleculesPixels(int columnNumber, short[][] columnPixelData, IEnumerable<Molecule> moleculePositions, Dictionary<Tuple<int, int>, FOV> FOVShifts,
+                                                                double rotationCenterX, double rotationCenterY)
         {
             List<double[]> moleculesPixels = new List<double[]>();
             foreach (Molecule molecule in moleculePositions)
             {
-                int molRowStart = (int)Math.Floor(molecule.YStart);
-                int molRowEnd = (int)Math.Ceiling(molecule.YEnd);
-                int molColStart = (int)Math.Floor(molecule.XStart);
-                int molColEnd = (int)Math.Ceiling(molecule.XEnd);
-                int molLength = molRowEnd - molRowStart;
-                int molWidth = molColEnd - molColStart;
+                Tuple<int, int> colRowStart = new Tuple<int, int>(columnNumber, molecule.RowStart);
+                Tuple<int, int> colRowEnd = new Tuple<int, int>(columnNumber, molecule.RowEnd);
+                int molStartFOVCumsumXShift = FOVShifts[colRowStart].CumsumXShift;
+                int molStartFOVCumsumYShift = FOVShifts[colRowStart].CumsumYShift;
+                double molStartFOVAngle = FOVShifts[colRowStart].Angle;
+                int molEndFOVCumsumXShift = FOVShifts[colRowEnd].CumsumXShift;
+                int molEndFOVCumsumYShift = FOVShifts[colRowEnd].CumsumYShift;
+                double molEndFOVAngle = FOVShifts[colRowEnd].Angle;
+                Tuple<double, double> molXYStart = GetRotatedXYPosition(molStartFOVAngle, rotationCenterX, rotationCenterY, molecule.XStart + molStartFOVCumsumXShift, molecule.YStart);
+                Tuple<double, double> molXYEnd = GetRotatedXYPosition(molEndFOVAngle, rotationCenterX, rotationCenterY, molecule.XEnd + molEndFOVCumsumXShift, molecule.YEnd);
+                int molStartReadY = (int)Math.Floor(molXYStart.Item2) + imageLength * (molecule.RowStart - 1) + molStartFOVCumsumYShift;
+                int molEndReadY = (int)Math.Ceiling(molXYEnd.Item2) + imageLength * (molecule.RowEnd - 1) + molEndFOVCumsumYShift;
+                int molStartReadX = (int)Math.Floor(molXYStart.Item1) - 4;
+                int molEndReadX = (int)Math.Floor(molXYEnd.Item1) + 4;
+                int molLength = molEndReadY - molStartReadY + 1;
+                int molWidth = molEndReadX - molStartReadX + 1;
 
                 double[] moleculePixelData = new double[molLength];
-                for (int row = molRowStart; row < molRowEnd; row++)
+                for (int row = molStartReadY; row <= molEndReadY; row++)
                 {
                     double rowSum = 0;
-                    for (int col = molColStart; col < molColEnd; col++)
+                    for (int col = molStartReadX; col <= molEndReadX; col++)
                     {
                         rowSum += columnPixelData[row][col];
                     }
-                    moleculePixelData[row - molRowStart] = (rowSum / molWidth);
+                    moleculePixelData[row - molStartReadY] = (rowSum / molWidth);
                 }
                 moleculesPixels.Add(moleculePixelData);
             }
@@ -284,16 +265,16 @@ namespace IrysIntensity
         }
 
 
-        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, Tuple<float, int, int>> FOVShifts)
+        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, FOV> FOVShifts)
         {
-            //short[][][] columnFramesPixelData = new short[rowsPerColumn][][];
             IEnumerable<Molecule> moleculePositions = DatabaseManager.SelectColumnMolecules(1, 1, 1, columnNumber);
+            int totalYShift = FOVShifts[new Tuple<int, int>(columnNumber, rowsPerColumn)].CumsumYShift;
             short[][] framePixels;
-            short[][] columnPixelData = new short[imageLength * rowsPerColumn /*+ totalYShift*/][]; //totalYShift is a negative value
-            float angle;
+            short[][] columnPixelData = new short[imageLength * rowsPerColumn + totalYShift][]; //totalYShift is a negative value
+            double angle;
             int xShift, yShift;
 
-            for (int row = 0; row < imageLength * rowsPerColumn /*+ totalYShift*/; row++)
+            for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
             {
                 columnPixelData[row] = new short[imageWidth];
             }
@@ -303,36 +284,33 @@ namespace IrysIntensity
                 int rowNumber = 1;
                 int cumSumYShift = 0;
                 int cumSumXShift = 0;
-                float cumsumAngle = 0;
                 GetFrameNumbers(columnNumber, currentChannel, columnFrames);
                 foreach (short frameNumber in columnFrames)
                 {
                     Tuple<int, int> colRow = new Tuple<int, int>(columnNumber, rowNumber);
-                    angle = FOVShifts[colRow].Item1;
-                    xShift = FOVShifts[colRow].Item2;
-                    yShift = FOVShifts[colRow].Item3;
-                    cumSumYShift += /*(int)(Math.Floor(Math.Sin(Math.PI / 2 - angle)* yShift))*/ yShift;
-                    cumSumXShift -= (int)Math.Ceiling(Math.Cos(angle)*xShift) /*xShift*/;
+                    angle = FOVShifts[colRow].Angle;
+                    cumSumXShift = FOVShifts[colRow].CumsumXShift;
+                    cumSumYShift = FOVShifts[colRow].CumsumYShift;
+                    xShift = FOVShifts[colRow].XShift;
+                    yShift = FOVShifts[colRow].YShift;
                     framePixels = FramePixelsAsShortArray(scanTiff, frameNumber);
-                    TranslateX(framePixels, cumSumXShift /*-xShift*/);
-                    //framePixels = RotateBilinear(framePixels, angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
-                    framePixels = RotateBilinear(framePixels, (Math.PI - angle), (imageWidth - 1) / 2, (imageLength - 1) / 2);
-                    //framePixels = Rotate180AroundCenter(framePixels);
-                    //TranslateX(framePixels, cumSumXShift /*xShift*/);
+                    framePixels = Rotate180AroundCenter(framePixels);
+                    TranslateX(framePixels, cumSumXShift);
+                    framePixels = RotateBilinear(framePixels, angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
                     MergeOnYOverlap(columnPixelData, framePixels, yShift, rowNumber, cumSumYShift);
                     rowNumber++;
                 }
 
-                //IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnPixelData, moleculePositions);
+                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2);
 
-                using (StreamWriter sw = new StreamWriter(@"column2_cumsum_x_cos_angle_rotate_180_minus_angle.txt"))
-                {
-                    for (int row = 0; row < imageLength * rowsPerColumn; row++)
-                    {
-                        string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
-                        sw.WriteLine(print);
-                    }
-                }
+                //using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_new5.txt"))
+                //{
+                //    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
+                //    {
+                //        string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
+                //        sw.WriteLine(print);
+                //    }
+                //}
             }
 
         }
@@ -353,7 +331,7 @@ namespace IrysIntensity
                 spp = samplesPerPixel[0].ToShort();
                 scanlineSize = scanImages.ScanlineSize();
 
-                Dictionary<Tuple<int, int>, Tuple<float, int, int>> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
+                Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
 
                 for (int currColumn = 2; currColumn <=2 /*columnPerScan*/; currColumn++)
                 {
