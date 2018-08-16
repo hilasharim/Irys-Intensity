@@ -275,33 +275,6 @@ namespace IrysIntensity
             }
         }
 
-
-        public static List<int> SelectRelevantColumns(int projectId, int runId, int scan)
-        {
-            List<int> scanColumns = new List<int>();
-            SetConnection();
-            sql_con.Open();
-
-            using (sql_con)
-            {
-                string select_columns_command = "SELECT DISTINCT col FROM molecules WHERE projectId = @param1 AND runId = @param2 AND scan = @param3 ORDER BY col";
-
-                using (sql_cmd = new SQLiteCommand(select_columns_command, sql_con))
-                {
-                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
-                    sql_cmd.Parameters.Add(new SQLiteParameter("@param2", runId));
-                    sql_cmd.Parameters.Add(new SQLiteParameter("@param3", scan));
-                    SQLiteDataReader dataReader = sql_cmd.ExecuteReader();
-                    while (dataReader.Read())
-                    {
-                        scanColumns.Add(Convert.ToInt32(dataReader["col"]));
-                    }
-                }
-            }
-
-            return scanColumns;
-        }
-
         public static IEnumerable<Molecule> SelectColumnMolecules(int projectId, int runId, int scan, int column)
         {
             List<Molecule> columnMolecules = new List<Molecule>();
@@ -328,6 +301,38 @@ namespace IrysIntensity
             }
 
             return columnMolecules;
+        }
+
+        public static IEnumerable<Tuple<int, int>> SelectFOVsBackgroundSubtraction(int projectId, int runId)
+        {
+            HashSet<Tuple<int, int>> firstLastColumnsMoleculeFOVs = new HashSet<Tuple<int, int>>();
+            string[] selectParams = new string[] { "rowStart", "rowEnd" };
+            SetConnection();
+            sql_con.Open();
+            using (sql_con)
+            {
+                string selectMoleculesCommand = "SELECT DISTINCT col, rowStart FROM molecules WHERE projectId = @param2 AND runId = @param3 AND scan = 1 AND (col = 1 OR col = @param4)";
+                using (sql_cmd = new SQLiteCommand(selectMoleculesCommand, sql_con))
+                {
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param2", projectId));
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param3", runId));
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param4", TiffImages.columnPerScan));
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1"));
+                    foreach (string parameter in selectParams)
+                    {
+                        sql_cmd.Parameters["@param1"].Value = parameter;
+                        using (SQLiteDataReader dataReader = sql_cmd.ExecuteReader())
+                        {
+                            while (dataReader.Read())
+                            {
+                                firstLastColumnsMoleculeFOVs.Add(new Tuple<int, int>(Convert.ToInt32(dataReader["col"]), Convert.ToInt32(dataReader[parameter])));
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            return firstLastColumnsMoleculeFOVs;
         }
     }
 }

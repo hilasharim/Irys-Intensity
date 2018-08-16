@@ -16,14 +16,17 @@ namespace IrysIntensity
     {
         private const int totalChannels = 3;
         private const int rowsPerColumn = 12;
-        private const int columnPerScan = 95;
+        public const int columnPerScan = 95;
+        private const int xOpticalAxis = 170;
+        private const int moleculePixelsPadding = 4;
+        private static readonly double[] relativeMagnifications = new double[] { 1, 0.99, 1.006 };
+
         static short[] columnFrames = new short[rowsPerColumn];
         static int imageLength;
         static int imageWidth;
         static int scanlineSize;
         static short bitsPerPixel; //16 for 16-bit tiff
         static short spp; //tiff samples per pixel: 1 for greyscale, 3 for RGB
-
 
         //Parse a scan's FOV file to return a dictionary where the keys are a tuple (col, row) and the values are FOV instances. returns null if FOV file not found
         private static Dictionary<Tuple<int, int>, FOV> ParseFOVFile(string fovFilePath)
@@ -227,7 +230,7 @@ namespace IrysIntensity
 
 
         private static IEnumerable<double[]> getMoleculesPixels(int columnNumber, short[][] columnPixelData, IEnumerable<Molecule> moleculePositions, Dictionary<Tuple<int, int>, FOV> FOVShifts,
-                                                                double rotationCenterX, double rotationCenterY)
+                                                                double rotationCenterX, double rotationCenterY, int channel)
         {
             List<double[]> moleculesPixels = new List<double[]>();
             foreach (Molecule molecule in moleculePositions)
@@ -244,8 +247,8 @@ namespace IrysIntensity
                 Tuple<double, double> molXYEnd = GetRotatedXYPosition(molEndFOVAngle, rotationCenterX, rotationCenterY, molecule.XEnd + molEndFOVCumsumXShift, molecule.YEnd);
                 int molStartReadY = (int)Math.Floor(molXYStart.Item2) + imageLength * (molecule.RowStart - 1) + molStartFOVCumsumYShift;
                 int molEndReadY = (int)Math.Ceiling(molXYEnd.Item2) + imageLength * (molecule.RowEnd - 1) + molEndFOVCumsumYShift;
-                int molStartReadX = (int)Math.Floor(molXYStart.Item1) - 4;
-                int molEndReadX = (int)Math.Floor(molXYEnd.Item1) + 4;
+                int molStartReadX = (int)Math.Floor((molXYStart.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) - (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]);
+                int molEndReadX = (int)Math.Ceiling((molXYEnd.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) + (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]);
                 int molLength = molEndReadY - molStartReadY + 1;
                 int molWidth = molEndReadX - molStartReadX + 1;
 
@@ -264,7 +267,6 @@ namespace IrysIntensity
             return moleculesPixels;
         }
 
-
         private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, FOV> FOVShifts)
         {
             IEnumerable<Molecule> moleculePositions = DatabaseManager.SelectColumnMolecules(1, 1, 1, columnNumber);
@@ -279,7 +281,7 @@ namespace IrysIntensity
                 columnPixelData[row] = new short[imageWidth];
             }
 
-            for (int currentChannel = 0; currentChannel <1 /*totalChannels*/; currentChannel++)
+            for (int currentChannel = 2; currentChannel <3 /*totalChannels*/; currentChannel++)
             {
                 int rowNumber = 1;
                 int cumSumYShift = 0;
@@ -301,9 +303,9 @@ namespace IrysIntensity
                     rowNumber++;
                 }
 
-                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2);
+                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
 
-                //using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_new5.txt"))
+                //using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_optical_axis.txt"))
                 //{
                 //    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
                 //    {
