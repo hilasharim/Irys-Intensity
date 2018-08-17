@@ -232,8 +232,7 @@ namespace IrysIntensity
             //TiffImages.ProcessScanTiff(@"C:\Users\Hila\Downloads\CCITT_1.TIF");
             Task newTask = Task.Factory.StartNew(() =>
             {
-                //TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", updateBox);
-                DatabaseManager.SelectFOVsBackgroundSubtraction(1, 1);
+                TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", updateBox);
             });
             newTask.ContinueWith(_ => MessageBox.Show(stopWatch.Elapsed.ToString()));
             //TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", column_counter_txtbx);

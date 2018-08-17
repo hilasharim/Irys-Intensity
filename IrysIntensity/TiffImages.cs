@@ -15,15 +15,15 @@ namespace IrysIntensity
     class TiffImages
     {
         private const int totalChannels = 3;
-        private const int rowsPerColumn = 12;
+        public const int rowsPerColumn = 12;
         public const int columnPerScan = 95;
         private const int xOpticalAxis = 170;
         private const int moleculePixelsPadding = 4;
         private static readonly double[] relativeMagnifications = new double[] { 1, 0.99, 1.006 };
 
         static short[] columnFrames = new short[rowsPerColumn];
-        static int imageLength;
-        static int imageWidth;
+        public static int imageLength;
+        public static int imageWidth;
         static int scanlineSize;
         static short bitsPerPixel; //16 for 16-bit tiff
         static short spp; //tiff samples per pixel: 1 for greyscale, 3 for RGB
@@ -71,7 +71,7 @@ namespace IrysIntensity
         }
 
         /*Function receives an open tiff file and a frame number, and returns the specified frame's pixel data as a short[][] array*/
-        private static short[][] FramePixelsAsShortArray(Tiff scanTiff, short frameNumber)
+        public static short[][] FramePixelsAsShortArray(Tiff scanTiff, short frameNumber)
         {
             short[][] pixelData = new short[imageLength][];
             byte[] buf = new byte[scanlineSize];
@@ -206,6 +206,18 @@ namespace IrysIntensity
             }
         }
 
+        public static short GetFrameNumber(int column, int row, int channel)
+        {
+            if (column % 2 != 0)
+            {
+                return (short)((column - 1) * rowsPerColumn * totalChannels + (row - 1) * totalChannels + channel);
+            }
+            else
+            {
+                return (short)(column * rowsPerColumn * totalChannels - (row - 1) * totalChannels - (totalChannels - channel));
+            }
+        }
+
         //Calculate the 12 frames that need to be opened for a specific column number in a specific channel, in top to bottom order.
         private static void GetFrameNumbers(int column, int channel, short[] columnChannelFrameNumbers)
         {   
@@ -267,7 +279,29 @@ namespace IrysIntensity
             return moleculesPixels;
         }
 
-        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, FOV> FOVShifts)
+        private static BackgroundFOV[] GetAllChannelsBackgroundFOVs(Tiff scanTiff, int projectId, int runId)
+        {
+            BackgroundFOV[] backgroundFOVs = new BackgroundFOV[totalChannels];
+            for (int currChannel = 0; currChannel < totalChannels; currChannel++)
+            {
+                backgroundFOVs[currChannel] = new BackgroundFOV(currChannel, imageLength, imageWidth);
+                backgroundFOVs[currChannel].CalculateBackground(scanTiff, projectId, runId);
+            }
+            return backgroundFOVs;
+        }
+
+        private static void SubtractFrameBackground(short[][] frame, BackgroundFOV backgroundFOV)
+        {
+            for (int row = 0; row < imageLength; row++)
+            {
+                for (int col = 0; col < imageWidth; col++)
+                {
+                    frame[row][col] = (short)(frame[row][col] / backgroundFOV.PixelValues[row][col] * backgroundFOV.AverageValue);
+                }
+            }
+        }
+
+        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, FOV> FOVShifts, BackgroundFOV[] allChannelsBackgroundFOVs)
         {
             IEnumerable<Molecule> moleculePositions = DatabaseManager.SelectColumnMolecules(1, 1, 1, columnNumber);
             int totalYShift = FOVShifts[new Tuple<int, int>(columnNumber, rowsPerColumn)].CumsumYShift;
@@ -296,6 +330,7 @@ namespace IrysIntensity
                     xShift = FOVShifts[colRow].XShift;
                     yShift = FOVShifts[colRow].YShift;
                     framePixels = FramePixelsAsShortArray(scanTiff, frameNumber);
+                    SubtractFrameBackground(framePixels, allChannelsBackgroundFOVs[currentChannel]);
                     framePixels = Rotate180AroundCenter(framePixels);
                     TranslateX(framePixels, cumSumXShift);
                     framePixels = RotateBilinear(framePixels, angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
@@ -303,16 +338,16 @@ namespace IrysIntensity
                     rowNumber++;
                 }
 
-                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
+                //IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
 
-                //using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_optical_axis.txt"))
-                //{
-                //    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
-                //    {
-                //        string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
-                //        sw.WriteLine(print);
-                //    }
-                //}
+                using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_GREEN_BackgroundSubtracted.txt"))
+                {
+                    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
+                    {
+                        string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
+                        sw.WriteLine(print);
+                    }
+                }
             }
 
         }
@@ -334,11 +369,12 @@ namespace IrysIntensity
                 scanlineSize = scanImages.ScanlineSize();
 
                 Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
+                BackgroundFOV[] allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(scanImages, 1, 1);
 
                 for (int currColumn = 2; currColumn <=2 /*columnPerScan*/; currColumn++)
                 {
                     
-                    ProcessColumnImages(scanImages, currColumn, FOVData);
+                    ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs);
                     updateBox(currColumn.ToString());
                 }
             }

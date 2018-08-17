@@ -82,6 +82,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackgroundFOV.cs" />
     <Compile Include="BNXParser.cs" />
     <Compile Include="CMAPParser.cs" />
     <Compile Include="DatabaseManager.cs" />
