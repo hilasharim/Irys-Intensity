@@ -257,10 +257,10 @@ namespace IrysIntensity
                 double molEndFOVAngle = FOVShifts[colRowEnd].Angle;
                 Tuple<double, double> molXYStart = GetRotatedXYPosition(molStartFOVAngle, rotationCenterX, rotationCenterY, molecule.XStart + molStartFOVCumsumXShift, molecule.YStart);
                 Tuple<double, double> molXYEnd = GetRotatedXYPosition(molEndFOVAngle, rotationCenterX, rotationCenterY, molecule.XEnd + molEndFOVCumsumXShift, molecule.YEnd);
-                int molStartReadY = (int)Math.Floor(molXYStart.Item2) + imageLength * (molecule.RowStart - 1) + molStartFOVCumsumYShift;
-                int molEndReadY = (int)Math.Ceiling(molXYEnd.Item2) + imageLength * (molecule.RowEnd - 1) + molEndFOVCumsumYShift;
-                int molStartReadX = (int)Math.Floor((molXYStart.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) - (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]);
-                int molEndReadX = (int)Math.Ceiling((molXYEnd.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) + (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]);
+                int molStartReadY = Math.Max((int)Math.Floor(molXYStart.Item2) + imageLength * (molecule.RowStart - 1) + molStartFOVCumsumYShift, 0);
+                int molEndReadY = Math.Min((int)Math.Ceiling(molXYEnd.Item2) + imageLength * (molecule.RowEnd - 1) + molEndFOVCumsumYShift, imageLength * rowsPerColumn + FOVShifts[new Tuple<int,int>(columnNumber, rowsPerColumn)].CumsumYShift);
+                int molStartReadX = Math.Max((int)Math.Floor((molXYStart.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) - (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]),0);
+                int molEndReadX = Math.Min((int)Math.Ceiling((molXYEnd.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) + (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]), imageWidth);
                 int molLength = molEndReadY - molStartReadY + 1;
                 int molWidth = molEndReadX - molStartReadX + 1;
 
@@ -315,7 +315,7 @@ namespace IrysIntensity
                 columnPixelData[row] = new short[imageWidth];
             }
 
-            for (int currentChannel = 2; currentChannel <3 /*totalChannels*/; currentChannel++)
+            for (int currentChannel = 0; currentChannel </*1*/ totalChannels; currentChannel++)
             {
                 int rowNumber = 1;
                 int cumSumYShift = 0;
@@ -338,16 +338,16 @@ namespace IrysIntensity
                     rowNumber++;
                 }
 
-                //IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
+                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
 
-                using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_GREEN_BackgroundSubtracted.txt"))
-                {
-                    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
-                    {
-                        string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
-                        sw.WriteLine(print);
-                    }
-                }
+                //using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_GREEN_BackgroundSubtracted.txt"))
+                //{
+                //    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
+                //    {
+                //        string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
+                //        sw.WriteLine(print);
+                //    }
+                //}
             }
 
         }
@@ -371,7 +371,7 @@ namespace IrysIntensity
                 Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
                 BackgroundFOV[] allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(scanImages, 1, 1);
 
-                for (int currColumn = 2; currColumn <=2 /*columnPerScan*/; currColumn++)
+                for (int currColumn = 1; currColumn <=/*8*/ columnPerScan; currColumn++)
                 {
                     
                     ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs);
