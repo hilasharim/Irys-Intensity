@@ -192,6 +192,30 @@ namespace IrysIntensity
             }
         }
 
+        /*called when sql_con is already open and inside a using statement*/
+        private static int CountProjectRuns(int projectId)
+        {
+            string countRunsCommand = "SELECT COUNT(DISTINCT runId) FROM molecules WHERE projectId = @param1";
+            using (sql_cmd = new SQLiteCommand(countRunsCommand, sql_con))
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                int count = Convert.ToInt32(sql_cmd.ExecuteScalar());
+                return count;
+            }
+        }
+
+        /*called when sql_con is already open and inside a using statement*/
+        private static int GetMaxScanNumber(int projectId)
+        {
+            string maxScanCommand = "SELECT MAX(DISTINCT scan) FROM molecules WHERE projectId = @param1";
+            using (sql_cmd = new SQLiteCommand(maxScanCommand, sql_con))
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                int maxScan = Convert.ToInt32(sql_cmd.ExecuteScalar());
+                return maxScan;
+            }
+        }
+
         private static void AddListToINCmd(int[] valuesArray, int startParamNum)
         {
             List<string> paramNames = new List<string>();
@@ -205,7 +229,62 @@ namespace IrysIntensity
             sql_cmd.CommandText += ("("+ String.Join(",", paramNames)+ ")");
         }
 
-        public static int SelectMolecules(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
+        /*called when sql_con is open and inside a using statement*/
+        private static void buildSelectMoleculesCommand(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
+            List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
+        {
+            string selectMoleculesCommand = "SELECT molId, runId, scan, col, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, chromId, alignmentString FROM molecules WHERE projectId = @param1 AND ";
+            int optParamStartVal = 5;
+            if (mappedFilter == 1)
+            {
+                selectMoleculesCommand += "mapped = 1 AND ";
+            }
+            selectMoleculesCommand += "length >= @param2 AND confidence >= @param3 AND percentAligned >= @param4";
+            sql_cmd = new SQLiteCommand(selectMoleculesCommand, sql_con);
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param2", lengthFilter));
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param3", confidenceFilter));
+            sql_cmd.Parameters.Add(new SQLiteParameter("@param4", percentAlignedFilter));
+            if (molIdsFilter != null || (chromIdsFilter != null && chromIdsFilter.Count > 0) || (chromStartEndsFilter != null && chromStartEndsFilter.Count > 0))
+            {
+                sql_cmd.CommandText += " OR (";
+                if (molIdsFilter != null) //add mol IDs filter as parameters to SELECT IN
+                {
+                    sql_cmd.CommandText += " (molId IN ";
+                    AddListToINCmd(molIdsFilter, optParamStartVal);
+                    sql_cmd.CommandText += ")";
+                    optParamStartVal += molIdsFilter.Length;
+                }
+                if (chromIdsFilter != null && chromIdsFilter.Count > 0) //add chrom IDs filter as parameters to SELECT IN
+                {
+                    sql_cmd.CommandText += " OR (chromId IN ";
+                    AddListToINCmd(chromIdsFilter.ToArray(), optParamStartVal);
+                    sql_cmd.CommandText += ")";
+                    optParamStartVal += chromIdsFilter.Count;
+                }
+                if (chromStartEndsFilter != null && chromStartEndsFilter.Count > 0) //add chrom, start, end as parameters to SELECT, separated by OR
+                {
+                    List<string> newLocationParamStrings = new List<string>();
+                    sql_cmd.CommandText += " OR (";
+                    foreach (Tuple<int, int, int> molLocation in chromStartEndsFilter)
+                    {
+                        string newChromParam = String.Format("@param{0}", optParamStartVal++);
+                        string newStartParam = String.Format("@param{0}", optParamStartVal++);
+                        string newEndParam = String.Format("@param{0}", optParamStartVal++);
+                        sql_cmd.Parameters.Add(new SQLiteParameter(newChromParam, molLocation.Item1));
+                        sql_cmd.Parameters.Add(new SQLiteParameter(newStartParam, molLocation.Item2));
+                        sql_cmd.Parameters.Add(new SQLiteParameter(newEndParam, molLocation.Item3));
+                        string newLocationString = String.Format("(chromId = {0} AND ((molStart BETWEEN {1} AND {2}) OR (molEnd BETWEEN {1} AND {2})))", newChromParam, newStartParam, newEndParam);
+                        newLocationParamStrings.Add(newLocationString);
+                    }
+                    sql_cmd.CommandText += String.Join("OR ", newLocationParamStrings);
+                    sql_cmd.CommandText += ")";
+                }
+                sql_cmd.CommandText += ")";
+            }
+        }
+
+        public static IEnumerable<Molecule>[][][] SelectMolecules(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
             List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
         {
             SetConnection();
@@ -213,65 +292,35 @@ namespace IrysIntensity
 
             using (sql_con)
             {
-                string select_molecule_command = "SELECT COUNT(id) FROM molecules WHERE projectId = @param1 AND ";
-                int optParamStartVal = 5;
-
-                if (mappedFilter == 1)
+                int numRuns = CountProjectRuns(projectId);
+                int maxScans = GetMaxScanNumber(projectId);
+                List<Molecule>[][][] selectedMolecules = new List<Molecule>[numRuns][][];
+                for (int run = 0; run < numRuns; run++)
                 {
-                    select_molecule_command += "mapped = 1 AND ";
-                }
-                select_molecule_command += "length >= @param2 AND confidence >= @param3 AND percentAligned >= @param4";
-
-                using (sql_cmd = new SQLiteCommand(select_molecule_command, sql_con))
-                {
-                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
-                    sql_cmd.Parameters.Add(new SQLiteParameter("@param2", lengthFilter));
-                    sql_cmd.Parameters.Add(new SQLiteParameter("@param3", confidenceFilter));
-                    sql_cmd.Parameters.Add(new SQLiteParameter("@param4", percentAlignedFilter));
-
-                    if (molIdsFilter != null || (chromIdsFilter != null && chromIdsFilter.Count > 0) || (chromStartEndsFilter != null && chromStartEndsFilter.Count > 0))
+                    selectedMolecules[run] = new List<Molecule>[maxScans][];
+                    for (int scan = 0; scan < maxScans; scan++)
                     {
-                        sql_cmd.CommandText += " AND (";
-                        if (molIdsFilter != null) //add mol IDs filter as parameters to SELECT IN
+                        selectedMolecules[run][scan] = new List<Molecule>[TiffImages.columnPerScan];
+                        for (int col = 0; col < TiffImages.columnPerScan; col++)
                         {
-                            sql_cmd.CommandText += " (molId IN ";
-                            AddListToINCmd(molIdsFilter, optParamStartVal);
-                            sql_cmd.CommandText += ")";
-                            optParamStartVal += molIdsFilter.Length;
+                            selectedMolecules[run][scan][col] = new List<Molecule>();
                         }
-
-                        if (chromIdsFilter != null && chromIdsFilter.Count > 0) //add chrom IDs filter as parameters to SELECT IN
-                        {
-                            sql_cmd.CommandText += " OR (chromId IN ";
-                            AddListToINCmd(chromIdsFilter.ToArray(), optParamStartVal);
-                            sql_cmd.CommandText += ")";
-                            optParamStartVal += chromIdsFilter.Count;
-                        }
-
-                        if (chromStartEndsFilter != null && chromStartEndsFilter.Count > 0) //add chrom, start, end as parameters to SELECT, separated by OR
-                        {
-                            List<string> newLocationParamStrings = new List<string>();
-                            sql_cmd.CommandText += " OR (";
-                            foreach (Tuple<int, int, int> molLocation in chromStartEndsFilter)
-                            {
-                                string newChromParam = String.Format("@param{0}", optParamStartVal++);
-                                string newStartParam = String.Format("@param{0}", optParamStartVal++);
-                                string newEndParam = String.Format("@param{0}", optParamStartVal++);
-                                sql_cmd.Parameters.Add(new SQLiteParameter(newChromParam, molLocation.Item1));
-                                sql_cmd.Parameters.Add(new SQLiteParameter(newStartParam, molLocation.Item2));
-                                sql_cmd.Parameters.Add(new SQLiteParameter(newEndParam, molLocation.Item3));
-                                string newLocationString = String.Format("(chromId = {0} AND ((molStart BETWEEN {1} AND {2}) OR (molEnd BETWEEN {1} AND {2})))", newChromParam, newStartParam, newEndParam);
-                                newLocationParamStrings.Add(newLocationString);
-                            }
-                            sql_cmd.CommandText += String.Join("OR ", newLocationParamStrings);
-                            sql_cmd.CommandText += ")";
-                        }
-                        sql_cmd.CommandText += ")";
                     }
-
-                    int count = Convert.ToInt32(sql_cmd.ExecuteScalar());
-                    return count;
                 }
+                buildSelectMoleculesCommand(projectId, mappedFilter, lengthFilter, confidenceFilter, percentAlignedFilter, molIdsFilter, chromIdsFilter, chromStartEndsFilter);
+                using (sql_cmd)
+                {
+                    SQLiteDataReader dataReader = sql_cmd.ExecuteReader();
+                    while (dataReader.Read())
+                    {
+                        Molecule mol = new Molecule(Convert.ToInt32(dataReader["molId"]), Convert.ToInt32(dataReader["runId"]), Convert.ToInt32(dataReader["scan"]), Convert.ToInt32(dataReader["col"]),
+                            Convert.ToInt32(dataReader["rowStart"]), Convert.ToInt32(dataReader["rowEnd"]), Convert.ToDouble(dataReader["xStart"]), Convert.ToDouble(dataReader["xEnd"]),
+                            Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"]), Convert.ToInt32(dataReader["mapped"]), Convert.ToInt32(dataReader["chromId"]), 
+                            dataReader["alignmentString"].ToString());
+                        selectedMolecules[mol.RunId - 1][mol.Scan - 1][mol.Column - 1].Add(mol);
+                    }
+                }
+                return selectedMolecules;
             }
         }
 

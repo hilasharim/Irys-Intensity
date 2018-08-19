@@ -18,6 +18,7 @@ namespace IrysIntensity
     {
 
         int projectID = 1;
+        IEnumerable<Molecule>[][][] selectedMolecules;
         private readonly SynchronizationContext synchronizationContext;
 
         public IrysIntensity()
@@ -189,7 +190,7 @@ namespace IrysIntensity
                 }
             }
 
-            int count = DatabaseManager.SelectMolecules(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, chromStartEndFilter);
+            selectedMolecules =  DatabaseManager.SelectMolecules(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, chromStartEndFilter);
         }
 
         private void openQcmapFile_Click(object sender, EventArgs e)
@@ -229,21 +230,11 @@ namespace IrysIntensity
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            //TiffImages.ProcessScanTiff(@"C:\Users\Hila\Downloads\CCITT_1.TIF");
             Task newTask = Task.Factory.StartNew(() =>
             {
-                TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", updateBox);
+                TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", selectedMolecules[0][0], updateBox);
             });
             newTask.ContinueWith(_ => MessageBox.Show(stopWatch.Elapsed.ToString()));
-            //TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", column_counter_txtbx);
-            //TiffImages.RotateBilinear(null, 0, 0, 0.002, 256, 256);
-            //TiffImages.RotateImage();
-           
-            //TiffImages.ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
-            //MessageBox.Show(stopWatch.Elapsed.ToString());
-            //string elapsedTime = TiffImages.openImageLibtiff();
-            //string alignmentString = "(39,20)(40,19)(42,18)(43,17)(45,16)(46,15)(47,13)(48,12)(49,11)(50,10)(51,9)(52,9)(53,8)(54,7)(55,5)(56,4)(57,3)(58,2)(60,1)";
-            //List<Tuple<int, int>> result = XMAPParser.ParseAlignmentString(alignmentString);
         }
                 
     }

@@ -21,7 +21,6 @@ namespace IrysIntensity
         private const int moleculePixelsPadding = 4;
         private static readonly double[] relativeMagnifications = new double[] { 1, 0.99, 1.006 };
 
-        static short[] columnFrames = new short[rowsPerColumn];
         public static int imageLength;
         public static int imageWidth;
         static int scanlineSize;
@@ -206,6 +205,15 @@ namespace IrysIntensity
             }
         }
 
+        private static void CopyOnYOverlap(short[][] destinationPixelValues, short[][] imageToMergePixels, int yOverlap, int rowNumber, int cumSumYOverlap)
+        {
+            int destinationStartRow = imageLength * (rowNumber - 1) + cumSumYOverlap;
+            for (int row = 0; row < imageLength; row++)
+            {
+                destinationPixelValues[destinationStartRow + row] = imageToMergePixels[row];
+            }
+        }
+
         public static short GetFrameNumber(int column, int row, int channel)
         {
             if (column % 2 != 0)
@@ -301,46 +309,66 @@ namespace IrysIntensity
             }
         }
 
-        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, FOV> FOVShifts, BackgroundFOV[] allChannelsBackgroundFOVs)
+        private static bool[] GetColumnRelevantRows(IEnumerable<Molecule> columnMolecules)
         {
-            IEnumerable<Molecule> moleculePositions = DatabaseManager.SelectColumnMolecules(1, 1, 1, columnNumber);
+            bool[] columnRelevantRows = new bool[rowsPerColumn];
+            foreach (Molecule mol in columnMolecules)
+            {
+                columnRelevantRows[mol.RowStart - 1] = true;
+                columnRelevantRows[mol.RowEnd - 1] = true;
+            }
+            return columnRelevantRows;
+        }
+
+        private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, FOV> FOVShifts, BackgroundFOV[] allChannelsBackgroundFOVs, IEnumerable<Molecule> columnMolecules)
+        {
+            bool[] columnRelevantRows = GetColumnRelevantRows(columnMolecules);
             int totalYShift = FOVShifts[new Tuple<int, int>(columnNumber, rowsPerColumn)].CumsumYShift;
             short[][] framePixels;
             short[][] columnPixelData = new short[imageLength * rowsPerColumn + totalYShift][]; //totalYShift is a negative value
             double angle;
             int xShift, yShift;
+            short frameNumber;
 
             for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
             {
                 columnPixelData[row] = new short[imageWidth];
             }
 
-            for (int currentChannel = 0; currentChannel </*1*/ totalChannels; currentChannel++)
+            for (int currentChannel = 1; currentChannel < /*1*/ totalChannels; currentChannel++)
             {
-                int rowNumber = 1;
                 int cumSumYShift = 0;
                 int cumSumXShift = 0;
-                GetFrameNumbers(columnNumber, currentChannel, columnFrames);
-                foreach (short frameNumber in columnFrames)
+                for (int rowNumber = 1; rowNumber <= rowsPerColumn; rowNumber++)
                 {
-                    Tuple<int, int> colRow = new Tuple<int, int>(columnNumber, rowNumber);
-                    angle = FOVShifts[colRow].Angle;
-                    cumSumXShift = FOVShifts[colRow].CumsumXShift;
-                    cumSumYShift = FOVShifts[colRow].CumsumYShift;
-                    xShift = FOVShifts[colRow].XShift;
-                    yShift = FOVShifts[colRow].YShift;
-                    framePixels = FramePixelsAsShortArray(scanTiff, frameNumber);
-                    SubtractFrameBackground(framePixels, allChannelsBackgroundFOVs[currentChannel]);
-                    framePixels = Rotate180AroundCenter(framePixels);
-                    TranslateX(framePixels, cumSumXShift);
-                    framePixels = RotateBilinear(framePixels, angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
-                    MergeOnYOverlap(columnPixelData, framePixels, yShift, rowNumber, cumSumYShift);
-                    rowNumber++;
+                    if (columnRelevantRows[rowNumber - 1] == true)
+                    {
+                        Tuple<int, int> colRow = new Tuple<int, int>(columnNumber, rowNumber);
+                        angle = FOVShifts[colRow].Angle;
+                        cumSumXShift = FOVShifts[colRow].CumsumXShift;
+                        cumSumYShift = FOVShifts[colRow].CumsumYShift;
+                        xShift = FOVShifts[colRow].XShift;
+                        yShift = FOVShifts[colRow].YShift;
+                        frameNumber = GetFrameNumber(columnNumber, rowNumber, currentChannel);
+                        framePixels = FramePixelsAsShortArray(scanTiff, frameNumber);
+                        SubtractFrameBackground(framePixels, allChannelsBackgroundFOVs[currentChannel]);
+                        framePixels = Rotate180AroundCenter(framePixels);
+                        TranslateX(framePixels, cumSumXShift);
+                        framePixels = RotateBilinear(framePixels, angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
+                        if (rowNumber > 1 && columnRelevantRows[rowNumber - 2] == true) //prev row was relevant - merge on y overlap
+                        {
+                            MergeOnYOverlap(columnPixelData, framePixels, yShift, rowNumber, cumSumYShift);
+                        }
+                        else //the previous was not relevant - just copy the frame to its position considering its yOverlap
+                        {
+                            CopyOnYOverlap(columnPixelData, framePixels, yShift, rowNumber, cumSumYShift);
+                        }
+                    }
                 }
 
-                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, moleculePositions, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
+                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, columnMolecules, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
 
-                //using (StreamWriter sw = new StreamWriter(@"column2_rotate_180_cumsum_x_minus_rotate_angle_GREEN_BackgroundSubtracted.txt"))
+                //using (StreamWriter sw = new StreamWriter(@"column8_only_relevant_rows.txt"))
                 //{
                 //    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
                 //    {
@@ -354,7 +382,7 @@ namespace IrysIntensity
 
         public delegate void UpdateBox(string s);
 
-        public static void ProcessScanTiff(string scanTiffFilePath, UpdateBox updateBox)
+        public static void ProcessScanTiff(string scanTiffFilePath, IEnumerable<Molecule>[] scanMoleculesByCol, UpdateBox updateBox)
         {
             using (Tiff scanImages = Tiff.Open(scanTiffFilePath, "r"))
             {
@@ -373,61 +401,13 @@ namespace IrysIntensity
 
                 for (int currColumn = 1; currColumn <=/*8*/ columnPerScan; currColumn++)
                 {
-                    
-                    ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs);
+                    if (scanMoleculesByCol[currColumn - 1].Count() > 0)
+                    {
+                        ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs, scanMoleculesByCol[currColumn - 1]);
+                    }
                     updateBox(currColumn.ToString());
                 }
             }
         }
-        
-        public static string openImageLibtiff()
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            using (Tiff image = Tiff.Open(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", "r"))
-            {
-                FieldValue[] width = image.GetField(TiffTag.IMAGEWIDTH);
-                FieldValue[] height = image.GetField(TiffTag.IMAGELENGTH);
-                FieldValue[] samplesPerPixel = image.GetField(TiffTag.SAMPLESPERPIXEL); //will be 1 for greyscale, 3 for RGB
-                FieldValue[] bitsPerSample = image.GetField(TiffTag.BITSPERSAMPLE); //will be 16 if 16-bit image
-                FieldValue[] orientation = image.GetField(TiffTag.ORIENTATION); //defines 0,0 pixel of image
-                FieldValue[] planarConfig = image.GetField(TiffTag.PLANARCONFIG); // 0 = UNKNOWN; 1 = CONTIG (single image plane); 2 = SEPARATE (separate planes of data)
-                FieldValue[] photometric = image.GetField(TiffTag.PHOTOMETRIC); //minvalue is black or white
-                FieldValue[] rowsPerStrip = image.GetField(TiffTag.ROWSPERSTRIP);
-                FieldValue[] compression = image.GetField(TiffTag.COMPRESSION);
-                FieldValue[] fillOrder = image.GetField(TiffTag.FILLORDER); //which is the most significant bit
-
-                int imageLength = height[0].ToInt();
-                int imageWidth = width[0].ToInt();
-                short[][] pixelData = new short[imageLength][];
-
-                byte[] buf = new byte[image.ScanlineSize()];
-
-                for (short i = 0; i < 12; i++)
-                {
-                    image.SetDirectory(i);
-                    for (int row = 0; row < imageLength; row++)
-                    {
-                        image.ReadScanline(buf, row);
-                        short[] rowPixels = new short[buf.Length / sizeof(Int16)];
-                        Buffer.BlockCopy(buf, 0, rowPixels, 0, buf.Length);
-                        pixelData[row] = rowPixels;
-                    }
-                }
-                
-                /*image.SetDirectory(1);
-                for (int row = 0; row < imageLength; row++)
-                {
-                    image.ReadScanline(buf, row);
-                    short[] rowPixels = new short[buf.Length / sizeof(Int16)];
-                    Buffer.BlockCopy(buf, 0, rowPixels, 0, buf.Length);
-                    pixelData[row] = rowPixels;
-                } */
-            }     
-
-            return stopwatch.Elapsed.ToString();
-        }
-
-        
     }
 }

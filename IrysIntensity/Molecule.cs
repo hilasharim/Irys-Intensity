@@ -43,9 +43,16 @@ namespace IrysIntensity
             this.YEnd = yEnd;
         }
 
-        public Molecule(int molId, int runId, int scan, int column, int rowStart, int rowEnd, double xStart, double xEnd, double yStart, double yEnd, int mapped, int chromId, string alignmentString)
+        public Molecule(int molId, int runId, int scan, int column, int rowStart, int rowEnd, double xStart, double xEnd, double yStart, double yEnd, int mapped, int chromId, string alignmentString) 
+            : this(rowStart, rowEnd, xStart, xEnd, yStart, yEnd)
         {
-
+            this.MoleculeId = molId;
+            this.RunId = runId;
+            this.Scan = scan;
+            this.Column = column;
+            this.Mapped = mapped;
+            this.ChromId = chromId;
+            this.AlignmentString = alignmentString;
         }
     }
 }
