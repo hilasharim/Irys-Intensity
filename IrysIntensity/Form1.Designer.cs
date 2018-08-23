@@ -85,6 +85,8 @@
             this.openRunLocationsAdd = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.column_counter_txtbx = new System.Windows.Forms.TextBox();
+            this.label23 = new System.Windows.Forms.Label();
+            this.mol_upload_alignment_ch_txtbx = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -120,7 +122,7 @@
             this.AddNewMols.Location = new System.Drawing.Point(620, 101);
             this.AddNewMols.Name = "AddNewMols";
             this.AddNewMols.Size = new System.Drawing.Size(79, 28);
-            this.AddNewMols.TabIndex = 12;
+            this.AddNewMols.TabIndex = 17;
             this.AddNewMols.Text = "Upload";
             this.AddNewMols.UseVisualStyleBackColor = true;
             this.AddNewMols.Click += new System.EventHandler(this.AddNewMols_Click);
@@ -183,7 +185,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(22, 155);
+            this.label4.Location = new System.Drawing.Point(14, 152);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(69, 13);
             this.label4.TabIndex = 9;
@@ -240,7 +242,7 @@
             this.aligned_filter_ckbx.Location = new System.Drawing.Point(12, 319);
             this.aligned_filter_ckbx.Name = "aligned_filter_ckbx";
             this.aligned_filter_ckbx.Size = new System.Drawing.Size(83, 17);
-            this.aligned_filter_ckbx.TabIndex = 14;
+            this.aligned_filter_ckbx.TabIndex = 18;
             this.aligned_filter_ckbx.Text = "Aligned only";
             this.aligned_filter_ckbx.UseVisualStyleBackColor = true;
             // 
@@ -250,7 +252,7 @@
             this.label8.Location = new System.Drawing.Point(127, 319);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(77, 13);
-            this.label8.TabIndex = 15;
+            this.label8.TabIndex = 19;
             this.label8.Text = "Min length (kb)";
             // 
             // min_len_txtbx
@@ -258,7 +260,7 @@
             this.min_len_txtbx.Location = new System.Drawing.Point(130, 335);
             this.min_len_txtbx.Name = "min_len_txtbx";
             this.min_len_txtbx.Size = new System.Drawing.Size(53, 20);
-            this.min_len_txtbx.TabIndex = 16;
+            this.min_len_txtbx.TabIndex = 20;
             this.min_len_txtbx.Text = "150";
             // 
             // label9
@@ -267,7 +269,7 @@
             this.label9.Location = new System.Drawing.Point(247, 319);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(80, 13);
-            this.label9.TabIndex = 17;
+            this.label9.TabIndex = 21;
             this.label9.Text = "Min confidence";
             // 
             // min_conf_txtbx
@@ -275,7 +277,7 @@
             this.min_conf_txtbx.Location = new System.Drawing.Point(250, 335);
             this.min_conf_txtbx.Name = "min_conf_txtbx";
             this.min_conf_txtbx.Size = new System.Drawing.Size(53, 20);
-            this.min_conf_txtbx.TabIndex = 18;
+            this.min_conf_txtbx.TabIndex = 22;
             this.min_conf_txtbx.Text = "12";
             // 
             // label10
@@ -284,7 +286,7 @@
             this.label10.Location = new System.Drawing.Point(358, 318);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(149, 13);
-            this.label10.TabIndex = 19;
+            this.label10.TabIndex = 23;
             this.label10.Text = "Min aligned length percent (%)";
             // 
             // min_aligned_len_txtbx
@@ -292,7 +294,7 @@
             this.min_aligned_len_txtbx.Location = new System.Drawing.Point(361, 335);
             this.min_aligned_len_txtbx.Name = "min_aligned_len_txtbx";
             this.min_aligned_len_txtbx.Size = new System.Drawing.Size(53, 20);
-            this.min_aligned_len_txtbx.TabIndex = 20;
+            this.min_aligned_len_txtbx.TabIndex = 24;
             this.min_aligned_len_txtbx.Text = "60";
             // 
             // label11
@@ -301,7 +303,7 @@
             this.label11.Location = new System.Drawing.Point(12, 371);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(69, 13);
-            this.label11.TabIndex = 21;
+            this.label11.TabIndex = 25;
             this.label11.Text = "Molecule IDs";
             // 
             // mols_ids_txtbx
@@ -311,7 +313,7 @@
             this.mols_ids_txtbx.Name = "mols_ids_txtbx";
             this.mols_ids_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.mols_ids_txtbx.Size = new System.Drawing.Size(153, 169);
-            this.mols_ids_txtbx.TabIndex = 22;
+            this.mols_ids_txtbx.TabIndex = 26;
             // 
             // label12
             // 
@@ -319,7 +321,7 @@
             this.label12.Location = new System.Drawing.Point(14, 559);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(55, 13);
-            this.label12.TabIndex = 23;
+            this.label12.TabIndex = 27;
             this.label12.Text = "or from file";
             // 
             // mol_ids_file_path_txtbx
@@ -327,14 +329,14 @@
             this.mol_ids_file_path_txtbx.Location = new System.Drawing.Point(12, 575);
             this.mol_ids_file_path_txtbx.Name = "mol_ids_file_path_txtbx";
             this.mol_ids_file_path_txtbx.Size = new System.Drawing.Size(223, 20);
-            this.mol_ids_file_path_txtbx.TabIndex = 24;
+            this.mol_ids_file_path_txtbx.TabIndex = 28;
             // 
             // openMolIdsFile
             // 
             this.openMolIdsFile.Location = new System.Drawing.Point(12, 601);
             this.openMolIdsFile.Name = "openMolIdsFile";
             this.openMolIdsFile.Size = new System.Drawing.Size(75, 23);
-            this.openMolIdsFile.TabIndex = 25;
+            this.openMolIdsFile.TabIndex = 29;
             this.openMolIdsFile.Text = "Browse";
             this.openMolIdsFile.UseVisualStyleBackColor = true;
             this.openMolIdsFile.Click += new System.EventHandler(this.openMolIdsFile_Click);
@@ -345,7 +347,7 @@
             this.label13.Location = new System.Drawing.Point(298, 371);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(149, 13);
-            this.label13.TabIndex = 26;
+            this.label13.TabIndex = 30;
             this.label13.Text = "Location (chr:start-end, or chr)";
             // 
             // mol_locations_txtbx
@@ -355,7 +357,7 @@
             this.mol_locations_txtbx.Name = "mol_locations_txtbx";
             this.mol_locations_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.mol_locations_txtbx.Size = new System.Drawing.Size(176, 169);
-            this.mol_locations_txtbx.TabIndex = 27;
+            this.mol_locations_txtbx.TabIndex = 31;
             // 
             // label14
             // 
@@ -363,7 +365,7 @@
             this.label14.Location = new System.Drawing.Point(298, 559);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(55, 13);
-            this.label14.TabIndex = 28;
+            this.label14.TabIndex = 32;
             this.label14.Text = "or from file";
             // 
             // mol_locations_file_path_txtbx
@@ -371,14 +373,14 @@
             this.mol_locations_file_path_txtbx.Location = new System.Drawing.Point(301, 575);
             this.mol_locations_file_path_txtbx.Name = "mol_locations_file_path_txtbx";
             this.mol_locations_file_path_txtbx.Size = new System.Drawing.Size(223, 20);
-            this.mol_locations_file_path_txtbx.TabIndex = 29;
+            this.mol_locations_file_path_txtbx.TabIndex = 33;
             // 
             // openMolLocationsFile
             // 
             this.openMolLocationsFile.Location = new System.Drawing.Point(530, 573);
             this.openMolLocationsFile.Name = "openMolLocationsFile";
             this.openMolLocationsFile.Size = new System.Drawing.Size(75, 23);
-            this.openMolLocationsFile.TabIndex = 30;
+            this.openMolLocationsFile.TabIndex = 34;
             this.openMolLocationsFile.Text = "Browse";
             this.openMolLocationsFile.UseVisualStyleBackColor = true;
             this.openMolLocationsFile.Click += new System.EventHandler(this.openMolLocationsFile_Click);
@@ -389,7 +391,7 @@
             this.label15.Location = new System.Drawing.Point(298, 606);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(151, 13);
-            this.label15.TabIndex = 31;
+            this.label15.TabIndex = 35;
             this.label15.Text = "requires chromosomes key file:";
             // 
             // key_file_path_txtbx
@@ -397,14 +399,14 @@
             this.key_file_path_txtbx.Location = new System.Drawing.Point(301, 622);
             this.key_file_path_txtbx.Name = "key_file_path_txtbx";
             this.key_file_path_txtbx.Size = new System.Drawing.Size(223, 20);
-            this.key_file_path_txtbx.TabIndex = 32;
+            this.key_file_path_txtbx.TabIndex = 36;
             // 
             // openKeyFile
             // 
             this.openKeyFile.Location = new System.Drawing.Point(530, 620);
             this.openKeyFile.Name = "openKeyFile";
             this.openKeyFile.Size = new System.Drawing.Size(75, 23);
-            this.openKeyFile.TabIndex = 33;
+            this.openKeyFile.TabIndex = 37;
             this.openKeyFile.Text = "Browse";
             this.openKeyFile.UseVisualStyleBackColor = true;
             this.openKeyFile.Click += new System.EventHandler(this.openKeyFile_Click);
@@ -413,8 +415,8 @@
             // 
             this.filterMolecules.Location = new System.Drawing.Point(620, 293);
             this.filterMolecules.Name = "filterMolecules";
-            this.filterMolecules.Size = new System.Drawing.Size(79, 27);
-            this.filterMolecules.TabIndex = 36;
+            this.filterMolecules.Size = new System.Drawing.Size(79, 28);
+            this.filterMolecules.TabIndex = 38;
             this.filterMolecules.Text = "Apply filters";
             this.filterMolecules.UseVisualStyleBackColor = true;
             this.filterMolecules.Click += new System.EventHandler(this.filterMolecules_Click);
@@ -434,7 +436,7 @@
             this.q_cmap_file_path_txtbx.Location = new System.Drawing.Point(843, 29);
             this.q_cmap_file_path_txtbx.Name = "q_cmap_file_path_txtbx";
             this.q_cmap_file_path_txtbx.Size = new System.Drawing.Size(362, 20);
-            this.q_cmap_file_path_txtbx.TabIndex = 38;
+            this.q_cmap_file_path_txtbx.TabIndex = 40;
             // 
             // label17
             // 
@@ -450,7 +452,7 @@
             this.openQcmapFile.Location = new System.Drawing.Point(1211, 27);
             this.openQcmapFile.Name = "openQcmapFile";
             this.openQcmapFile.Size = new System.Drawing.Size(75, 23);
-            this.openQcmapFile.TabIndex = 40;
+            this.openQcmapFile.TabIndex = 41;
             this.openQcmapFile.Text = "Browse";
             this.openQcmapFile.UseVisualStyleBackColor = true;
             this.openQcmapFile.Click += new System.EventHandler(this.openQcmapFile_Click);
@@ -461,7 +463,7 @@
             this.label18.Location = new System.Drawing.Point(746, 59);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(91, 13);
-            this.label18.TabIndex = 41;
+            this.label18.TabIndex = 42;
             this.label18.Text = "R_CMAP file path";
             // 
             // r_cmap_file_path_txtbx
@@ -469,14 +471,14 @@
             this.r_cmap_file_path_txtbx.Location = new System.Drawing.Point(843, 56);
             this.r_cmap_file_path_txtbx.Name = "r_cmap_file_path_txtbx";
             this.r_cmap_file_path_txtbx.Size = new System.Drawing.Size(362, 20);
-            this.r_cmap_file_path_txtbx.TabIndex = 42;
+            this.r_cmap_file_path_txtbx.TabIndex = 43;
             // 
             // openRcmapFile
             // 
             this.openRcmapFile.Location = new System.Drawing.Point(1211, 54);
             this.openRcmapFile.Name = "openRcmapFile";
             this.openRcmapFile.Size = new System.Drawing.Size(75, 23);
-            this.openRcmapFile.TabIndex = 43;
+            this.openRcmapFile.TabIndex = 44;
             this.openRcmapFile.Text = "Browse";
             this.openRcmapFile.UseVisualStyleBackColor = true;
             this.openRcmapFile.Click += new System.EventHandler(this.openRcmapFile_Click);
@@ -487,7 +489,7 @@
             this.label19.Location = new System.Drawing.Point(746, 88);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(133, 13);
-            this.label19.TabIndex = 44;
+            this.label19.TabIndex = 45;
             this.label19.Text = "Chromosomes key file path";
             // 
             // key_file_path_txtbx2
@@ -495,14 +497,14 @@
             this.key_file_path_txtbx2.Location = new System.Drawing.Point(885, 86);
             this.key_file_path_txtbx2.Name = "key_file_path_txtbx2";
             this.key_file_path_txtbx2.Size = new System.Drawing.Size(362, 20);
-            this.key_file_path_txtbx2.TabIndex = 45;
+            this.key_file_path_txtbx2.TabIndex = 46;
             // 
             // openKeyFile2
             // 
             this.openKeyFile2.Location = new System.Drawing.Point(1253, 83);
             this.openKeyFile2.Name = "openKeyFile2";
             this.openKeyFile2.Size = new System.Drawing.Size(75, 23);
-            this.openKeyFile2.TabIndex = 46;
+            this.openKeyFile2.TabIndex = 47;
             this.openKeyFile2.Text = "Browse";
             this.openKeyFile2.UseVisualStyleBackColor = true;
             this.openKeyFile2.Click += new System.EventHandler(this.openKeyFile2_Click);
@@ -513,7 +515,7 @@
             this.label20.Location = new System.Drawing.Point(746, 123);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(61, 13);
-            this.label20.TabIndex = 47;
+            this.label20.TabIndex = 48;
             this.label20.Text = "Runs paths";
             // 
             // runs_paths_txtbx2
@@ -523,14 +525,14 @@
             this.runs_paths_txtbx2.Name = "runs_paths_txtbx2";
             this.runs_paths_txtbx2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.runs_paths_txtbx2.Size = new System.Drawing.Size(362, 76);
-            this.runs_paths_txtbx2.TabIndex = 48;
+            this.runs_paths_txtbx2.TabIndex = 49;
             // 
             // openRunLocations
             // 
             this.openRunLocations.Location = new System.Drawing.Point(1181, 150);
             this.openRunLocations.Name = "openRunLocations";
             this.openRunLocations.Size = new System.Drawing.Size(105, 23);
-            this.openRunLocations.TabIndex = 49;
+            this.openRunLocations.TabIndex = 50;
             this.openRunLocations.Text = "Add run locations";
             this.openRunLocations.UseVisualStyleBackColor = true;
             this.openRunLocations.Click += new System.EventHandler(this.openRunLocations_Click);
@@ -541,7 +543,7 @@
             this.label21.Location = new System.Drawing.Point(746, 217);
             this.label21.Name = "label21";
             this.label21.Size = new System.Drawing.Size(119, 13);
-            this.label21.TabIndex = 50;
+            this.label21.TabIndex = 51;
             this.label21.Text = "Alignment label channel";
             // 
             // alignment_channel_txtbx
@@ -549,17 +551,17 @@
             this.alignment_channel_txtbx.Location = new System.Drawing.Point(871, 214);
             this.alignment_channel_txtbx.Name = "alignment_channel_txtbx";
             this.alignment_channel_txtbx.Size = new System.Drawing.Size(30, 20);
-            this.alignment_channel_txtbx.TabIndex = 51;
+            this.alignment_channel_txtbx.TabIndex = 52;
             this.alignment_channel_txtbx.Text = "1";
             this.alignment_channel_txtbx.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // label22
             // 
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(30, 186);
+            this.label22.Location = new System.Drawing.Point(14, 186);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(61, 13);
-            this.label22.TabIndex = 52;
+            this.label22.TabIndex = 12;
             this.label22.Text = "Runs paths";
             // 
             // runs_paths_txtbx
@@ -568,15 +570,15 @@
             this.runs_paths_txtbx.Multiline = true;
             this.runs_paths_txtbx.Name = "runs_paths_txtbx";
             this.runs_paths_txtbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.runs_paths_txtbx.Size = new System.Drawing.Size(362, 76);
-            this.runs_paths_txtbx.TabIndex = 53;
+            this.runs_paths_txtbx.Size = new System.Drawing.Size(362, 61);
+            this.runs_paths_txtbx.TabIndex = 13;
             // 
             // openRunLocationsAdd
             // 
-            this.openRunLocationsAdd.Location = new System.Drawing.Point(465, 207);
+            this.openRunLocationsAdd.Location = new System.Drawing.Point(465, 198);
             this.openRunLocationsAdd.Name = "openRunLocationsAdd";
             this.openRunLocationsAdd.Size = new System.Drawing.Size(105, 23);
-            this.openRunLocationsAdd.TabIndex = 54;
+            this.openRunLocationsAdd.TabIndex = 14;
             this.openRunLocationsAdd.Text = "Add run locations";
             this.openRunLocationsAdd.UseVisualStyleBackColor = true;
             this.openRunLocationsAdd.Click += new System.EventHandler(this.openRunLocationsAdd_Click);
@@ -599,11 +601,31 @@
             this.column_counter_txtbx.TabIndex = 56;
             this.column_counter_txtbx.Text = "0";
             // 
+            // label23
+            // 
+            this.label23.AutoSize = true;
+            this.label23.Location = new System.Drawing.Point(14, 253);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(119, 13);
+            this.label23.TabIndex = 15;
+            this.label23.Text = "Alignment label channel";
+            // 
+            // mol_upload_alignment_ch_txtbx
+            // 
+            this.mol_upload_alignment_ch_txtbx.Location = new System.Drawing.Point(139, 250);
+            this.mol_upload_alignment_ch_txtbx.Name = "mol_upload_alignment_ch_txtbx";
+            this.mol_upload_alignment_ch_txtbx.Size = new System.Drawing.Size(30, 20);
+            this.mol_upload_alignment_ch_txtbx.TabIndex = 16;
+            this.mol_upload_alignment_ch_txtbx.Text = "1";
+            this.mol_upload_alignment_ch_txtbx.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1405, 661);
+            this.Controls.Add(this.mol_upload_alignment_ch_txtbx);
+            this.Controls.Add(this.label23);
             this.Controls.Add(this.column_counter_txtbx);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.openRunLocationsAdd);
@@ -727,6 +749,8 @@
         private System.Windows.Forms.Button openRunLocationsAdd;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox column_counter_txtbx;
+        private System.Windows.Forms.Label label23;
+        private System.Windows.Forms.TextBox mol_upload_alignment_ch_txtbx;
     }
 }
 

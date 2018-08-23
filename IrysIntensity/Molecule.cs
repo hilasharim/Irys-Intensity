@@ -20,9 +20,11 @@ namespace IrysIntensity
         public double XEnd { get; set; }
         public double YStart { get; set; }
         public double YEnd { get; set; }
+        public string AlignmentChannelLabelPositions { get; set; }
         public int Mapped { get; set; }
         public int ChromId { get; set; }
         public string AlignmentString { get; set; }
+        public string Orientation { get; set; }
 
         public Molecule(int moleculeId, float length, int runId, int scan, int originalId)
         {
@@ -43,7 +45,8 @@ namespace IrysIntensity
             this.YEnd = yEnd;
         }
 
-        public Molecule(int molId, int runId, int scan, int column, int rowStart, int rowEnd, double xStart, double xEnd, double yStart, double yEnd, int mapped, int chromId, string alignmentString) 
+        public Molecule(int molId, int runId, int scan, int column, int rowStart, int rowEnd, double xStart, double xEnd, double yStart, double yEnd, int mapped, int chromId, string alignmentString, 
+            string orientation, string alignmentChPositions) 
             : this(rowStart, rowEnd, xStart, xEnd, yStart, yEnd)
         {
             this.MoleculeId = molId;
@@ -53,6 +56,8 @@ namespace IrysIntensity
             this.Mapped = mapped;
             this.ChromId = chromId;
             this.AlignmentString = alignmentString;
+            this.Orientation = orientation;
+            this.AlignmentChannelLabelPositions = alignmentChPositions;
         }
     }
 }

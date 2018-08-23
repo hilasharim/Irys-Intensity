@@ -69,6 +69,7 @@ namespace IrysIntensity
             string xmapFilePath = XMAP_path_txtbox.Text;
             string bnxFilePath = BNX_path_txtbox.Text;
             string[] runRootDirs = runs_paths_txtbx.Text.Split('\n');
+            int alignmentLabelChannel = int.Parse(mol_upload_alignment_ch_txtbx.Text);
             if (String.IsNullOrEmpty(xmapFilePath))
             {
                 MessageBox.Show("Must provide path to XMAP file", "Missing file path");
@@ -91,7 +92,7 @@ namespace IrysIntensity
                 MessageBox.Show("Can't open specified XMAP file", "Error opening file");
                 return;
             }
-            int totalMolecules = BNXParser.ParseBNX(bnxFilePath, projectID);
+            int totalMolecules = BNXParser.ParseBNX(bnxFilePath, projectID, alignmentLabelChannel);
             if (totalMolecules == -1)
             {
                 MessageBox.Show("Can't open specified BNX file", "Error opening file");
@@ -232,6 +233,8 @@ namespace IrysIntensity
             stopWatch.Start();
             Task newTask = Task.Factory.StartNew(() =>
             {
+                CMAPParser.rCmapPositions = CMAPParser.ParseCmap(@"D:\MoleculeQualityReport_r.cmap", 1);
+                //CMAPParser.qCmapPositions = CMAPParser.ParseCmap(@"D:\MoleculeQualityReport_q.cmap", 1);
                 TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", selectedMolecules[0][0], updateBox);
             });
             newTask.ContinueWith(_ => MessageBox.Show(stopWatch.Elapsed.ToString()));

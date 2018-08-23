@@ -45,10 +45,10 @@ namespace IrysIntensity
         }
 
         //reads the BNX file, adds new molecules and runs to database, returns total number of molecules read or -1 if can't open file
-        public static int ParseBNX(string bnx_file_path, int projectId)
+        public static int ParseBNX(string bnx_file_path, int projectId, int alignmentChannel)
         {
             int totalReadMolecules = 0;
-
+             
             if (!File.Exists(bnx_file_path))
             {
                 return -1;
@@ -83,6 +83,15 @@ namespace IrysIntensity
                                     //scan_direction, chip_id, flowcell, run_id, global_scan_number
                                     string[] bnxMolInfo = line.Split('\t');
                                     Molecule mol = new Molecule(int.Parse(bnxMolInfo[1]), float.Parse(bnxMolInfo[2]), int.Parse(bnxMolInfo[11]), int.Parse(bnxMolInfo[7]), int.Parse(bnxMolInfo[6]));
+                                    do { line = streamReader.ReadLine(); } while (!line.StartsWith(alignmentChannel.ToString()));
+                                    if (line.LastIndexOf('\t') - line.IndexOf('\t') - 1 > 0) 
+                                    {
+                                        mol.AlignmentChannelLabelPositions = line.Substring(line.IndexOf('\t') + 1, line.LastIndexOf('\t') - line.IndexOf('\t') - 1);
+                                    }
+                                    else
+                                    {
+                                        mol.AlignmentChannelLabelPositions = "";
+                                    }
                                     moleculeListByRun[int.Parse(bnxMolInfo[11]) - 1].Add(mol);
                                     totalReadMolecules++;
                                 }
@@ -141,10 +150,6 @@ namespace IrysIntensity
                 mol.XEnd = float.Parse(molInfo[10]);
                 mol.YStart = float.Parse(molInfo[9]);
                 mol.YEnd = float.Parse(molInfo[11]);
-                //mol.XStart = float.Parse(molInfo[12]);
-                //mol.XEnd = float.Parse(molInfo[13]);
-                //mol.YStart = float.Parse(molInfo[14]);
-                //mol.YEnd = float.Parse(molInfo[15]);
             }
             fileStream.Close();
             streamReader.Close();

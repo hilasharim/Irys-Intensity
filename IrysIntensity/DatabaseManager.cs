@@ -41,7 +41,8 @@ namespace IrysIntensity
             string create_run_table_command = "CREATE TABLE IF NOT EXISTS runs (id INTEGER PRIMARY KEY, projectId INTEGER NOT NULL, name TEXT NOT NULL, month TEXT NOT NULL, UNIQUE(projectId, name, month))";
             string create_molecules_table_command = @"CREATE TABLE IF NOT EXISTS molecules (id INTEGER PRIMARY KEY, projectId INTEGER NOT NULL, runId INTEGER NOT NULL, molId INTEGER NOT NULL,
                                                     scan INTEGER NOT NULL, originalID INTEGER NOT NULL, length REAL NOT NULL, col INTEGER NOT NULL, rowStart INTEGER NOT NULL, rowEnd INTEGER NOT NULL,
-                                                    xStart READL NOT NULL, yStart REAL NOT NULL, xEnd REAL NOT NULL, yEnd REAL NOT NULL, mapped INTEGER NOT NULL, chromId INTEGER, molStart REAL, molEnd REAL,
+                                                    xStart READL NOT NULL, yStart REAL NOT NULL, xEnd REAL NOT NULL, yEnd REAL NOT NULL, alignmentChannelPositions TEXT NOT NULL,
+                                                    mapped INTEGER NOT NULL, chromId INTEGER, molStart REAL, molEnd REAL,
                                                     orientation TEXT, confidence REAL, alignmentString TEXT, percentAligned REAL, UNIQUE(projectId, runId, scan, originalId))";
 
             string[] create_index_commands = {"CREATE INDEX IF NOT EXISTS molecule_ids ON molecules (projectId, molId)",
@@ -127,12 +128,12 @@ namespace IrysIntensity
         }
 
         private static void AddMolecule(int projectId, int runId, int molId, int scan, int originalId, float length, int column, int rowStart, int rowEnd, double xStart, double yStart, double xEnd, double yEnd,
-            int mapped, int chromId, float start, float end, string orientation, float confidence, string alignmentString, float percentAligned)
+            int mapped, int chromId, float start, float end, string orientation, float confidence, string alignmentString, float percentAligned, string alignmentChannelPositions)
         {
             string add_molecule_command = @"INSERT OR IGNORE INTO molecules (projectId, runId, molId, scan, originalID, length, col, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, 
-                                            chromId, molStart, molEnd, orientation, confidence, alignmentString, percentAligned) 
+                                            chromId, molStart, molEnd, orientation, confidence, alignmentString, percentAligned, alignmentChannelPositions) 
                                             VALUES (@param1, @param2, @param3, @param4, @param5, @param6, @param7, @param8, @param9, @param10, @param11, @param12, @param13, @param14, @param15,
-                                            @param16, @param17, @param18, @param19, @param20, @param21)";
+                                            @param16, @param17, @param18, @param19, @param20, @param21, @param22)";
 
             using (sql_cmd = new SQLiteCommand(add_molecule_command, sql_con))
             {
@@ -157,6 +158,7 @@ namespace IrysIntensity
                 sql_cmd.Parameters.Add(new SQLiteParameter("@param19", confidence));
                 sql_cmd.Parameters.Add(new SQLiteParameter("@param20", alignmentString));
                 sql_cmd.Parameters.Add(new SQLiteParameter("@param21", percentAligned));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param22", alignmentChannelPositions));
                 sql_cmd.ExecuteNonQuery();
             }
         }
@@ -178,12 +180,12 @@ namespace IrysIntensity
                                 AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
                                     mol.YEnd, 1, int.Parse(XMAPParser.moleculeData[mol.MoleculeId][0]), float.Parse(XMAPParser.moleculeData[mol.MoleculeId][1]),
                                     float.Parse(XMAPParser.moleculeData[mol.MoleculeId][2]), XMAPParser.moleculeData[mol.MoleculeId][3], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][4]),
-                                    XMAPParser.moleculeData[mol.MoleculeId][5], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][6]));
+                                    XMAPParser.moleculeData[mol.MoleculeId][5], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][6]), mol.AlignmentChannelLabelPositions);
                             }
                             else //add without alignment data, only information from BNX and MOL files
                             {
                                 AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
-                                    mol.YEnd, 0, 0, 0, 0, "null", 0, "null", 0);
+                                    mol.YEnd, 0, 0, 0, 0, "null", 0, "null", 0, mol.AlignmentChannelLabelPositions);
                             }
                         }
                     }
@@ -233,7 +235,7 @@ namespace IrysIntensity
         private static void buildSelectMoleculesCommand(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
             List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
         {
-            string selectMoleculesCommand = "SELECT molId, runId, scan, col, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, chromId, alignmentString FROM molecules WHERE projectId = @param1 AND ";
+            string selectMoleculesCommand = "SELECT molId, runId, scan, col, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, chromId, alignmentString, orientation, alignmentChannelPositions FROM molecules WHERE projectId = @param1 AND ";
             int optParamStartVal = 5;
             if (mappedFilter == 1)
             {
@@ -316,7 +318,7 @@ namespace IrysIntensity
                         Molecule mol = new Molecule(Convert.ToInt32(dataReader["molId"]), Convert.ToInt32(dataReader["runId"]), Convert.ToInt32(dataReader["scan"]), Convert.ToInt32(dataReader["col"]),
                             Convert.ToInt32(dataReader["rowStart"]), Convert.ToInt32(dataReader["rowEnd"]), Convert.ToDouble(dataReader["xStart"]), Convert.ToDouble(dataReader["xEnd"]),
                             Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"]), Convert.ToInt32(dataReader["mapped"]), Convert.ToInt32(dataReader["chromId"]), 
-                            dataReader["alignmentString"].ToString());
+                            dataReader["alignmentString"].ToString(), dataReader["orientation"].ToString(), dataReader["alignmentChannelPositions"].ToString());
                         selectedMolecules[mol.RunId - 1][mol.Scan - 1][mol.Column - 1].Add(mol);
                     }
                 }
