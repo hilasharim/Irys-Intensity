@@ -8,6 +8,7 @@ namespace IrysIntensity
 {
     class Molecule
     {
+        public int DataBaseId { get; set; }
         public int MoleculeId { get; set; }
         public float Length { get; set; }
         public int RunId { get; set; }
@@ -25,6 +26,7 @@ namespace IrysIntensity
         public int ChromId { get; set; }
         public string AlignmentString { get; set; }
         public string Orientation { get; set; }
+        public double[][] Pixels { get; set; }
 
         public Molecule(int moleculeId, float length, int runId, int scan, int originalId)
         {
@@ -45,19 +47,27 @@ namespace IrysIntensity
             this.YEnd = yEnd;
         }
 
-        public Molecule(int molId, int runId, int scan, int column, int rowStart, int rowEnd, double xStart, double xEnd, double yStart, double yEnd, int mapped, int chromId, string alignmentString, 
-            string orientation, string alignmentChPositions) 
+        public Molecule(int dataBaseId, int molId, int runId, int scan, int column, int rowStart, int rowEnd, double xStart, double xEnd, double yStart, double yEnd) 
             : this(rowStart, rowEnd, xStart, xEnd, yStart, yEnd)
         {
+            this.DataBaseId = dataBaseId;
             this.MoleculeId = molId;
             this.RunId = runId;
             this.Scan = scan;
             this.Column = column;
-            this.Mapped = mapped;
+            this.Pixels = new double[TiffImages.totalChannels][];
+        }
+
+        public Molecule(int molId, string alignmentChPositions, int chromId, string alignmentString, string orientation, double[] channel1Pixels, double[] channel2Pixels)
+        {
+            this.MoleculeId = molId;
+            this.AlignmentChannelLabelPositions = alignmentChPositions;
             this.ChromId = chromId;
             this.AlignmentString = alignmentString;
             this.Orientation = orientation;
-            this.AlignmentChannelLabelPositions = alignmentChPositions;
+            this.Pixels = new double[2][];
+            this.Pixels[0] = channel1Pixels;
+            this.Pixels[1] = channel2Pixels;
         }
     }
 }

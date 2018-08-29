@@ -102,5 +102,31 @@ namespace IrysIntensity
             }
             return ParseAllLocations(stringMolLocations);
         }
+
+        public static int GetRunRootDir(string[] runRootDirs, string runMonth, string runName)
+        {
+            int count = 0;
+            int foundIndex = 0;
+            foreach (string rootDir in runRootDirs)
+            {
+                if (Directory.Exists(Path.Combine(rootDir.Trim(), runMonth, runName)))
+                {
+                    count++;
+                    foundIndex = Array.IndexOf(runRootDirs, rootDir);
+                }
+            }
+            if (count == 0)
+            {
+                return -1;
+            }
+            else if (count > 1)
+            {
+                return -2;
+            }
+            else
+            {
+                return foundIndex;
+            }
+        }
     }
 }

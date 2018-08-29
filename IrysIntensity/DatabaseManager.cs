@@ -42,8 +42,8 @@ namespace IrysIntensity
             string create_molecules_table_command = @"CREATE TABLE IF NOT EXISTS molecules (id INTEGER PRIMARY KEY, projectId INTEGER NOT NULL, runId INTEGER NOT NULL, molId INTEGER NOT NULL,
                                                     scan INTEGER NOT NULL, originalID INTEGER NOT NULL, length REAL NOT NULL, col INTEGER NOT NULL, rowStart INTEGER NOT NULL, rowEnd INTEGER NOT NULL,
                                                     xStart READL NOT NULL, yStart REAL NOT NULL, xEnd REAL NOT NULL, yEnd REAL NOT NULL, alignmentChannelPositions TEXT NOT NULL,
-                                                    mapped INTEGER NOT NULL, chromId INTEGER, molStart REAL, molEnd REAL,
-                                                    orientation TEXT, confidence REAL, alignmentString TEXT, percentAligned REAL, UNIQUE(projectId, runId, scan, originalId))";
+                                                    mapped INTEGER NOT NULL, chromId INTEGER, molStart REAL, molEnd REAL, orientation TEXT, confidence REAL, alignmentString TEXT,percentAligned REAL,
+                                                    channel1Pixels BLOB, channel2Pixels BLOB, UNIQUE(projectId, runId, scan, originalId))";
 
             string[] create_index_commands = {"CREATE INDEX IF NOT EXISTS molecule_ids ON molecules (projectId, molId)",
                                               "CREATE INDEX IF NOT EXISTS aligned ON molecules (mapped)",
@@ -127,6 +127,28 @@ namespace IrysIntensity
             }
         }
 
+        public static string[] GetRunNameMonth(int runId)
+        {
+            SetConnection();
+            sql_con.Open();
+            string selectRunCommand = "SELECT name, month FROM runs WHERE id = @param1";
+            string[] runNameMonth = new string[2];
+            using (sql_con)
+            {
+                using (sql_cmd = new SQLiteCommand(selectRunCommand, sql_con))
+                {
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1", runId));
+                    using (SQLiteDataReader reader = sql_cmd.ExecuteReader())
+                    {
+                        reader.Read();
+                        runNameMonth[0] = reader["name"].ToString();
+                        runNameMonth[1] = reader["month"].ToString();
+                    }
+                }
+            }
+            return runNameMonth;
+        }
+
         private static void AddMolecule(int projectId, int runId, int molId, int scan, int originalId, float length, int column, int rowStart, int rowEnd, double xStart, double yStart, double xEnd, double yEnd,
             int mapped, int chromId, float start, float end, string orientation, float confidence, string alignmentString, float percentAligned, string alignmentChannelPositions)
         {
@@ -161,6 +183,25 @@ namespace IrysIntensity
                 sql_cmd.Parameters.Add(new SQLiteParameter("@param22", alignmentChannelPositions));
                 sql_cmd.ExecuteNonQuery();
             }
+        }
+
+        public static void UpdateMoleculePixelData(int molDBId, double[][] moleculePixels, int startChannel)
+        {
+            string updateMoleculeCommand = @"UPDATE molecules SET channel1Pixels = @param1, channel2Pixels = @param2 WHERE id = @param3";
+            byte[][] moleculePixelsAsBytes = new byte[moleculePixels.Length][];
+            for (int currChannel = startChannel; currChannel < moleculePixels.Length; currChannel++)
+            {
+                moleculePixelsAsBytes[currChannel] = new byte[moleculePixels[currChannel].Length * sizeof(double)];
+                Buffer.BlockCopy(moleculePixels[currChannel], 0, moleculePixelsAsBytes[currChannel], 0, moleculePixelsAsBytes[currChannel].Length);
+            }
+
+            using (sql_cmd = new SQLiteCommand(updateMoleculeCommand, sql_con))
+            {
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param1", moleculePixelsAsBytes[1]));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param2", moleculePixelsAsBytes[2]));
+                sql_cmd.Parameters.Add(new SQLiteParameter("@param3", molDBId));
+                sql_cmd.ExecuteNonQuery();
+            }    
         }
 
         public static void AddAllMolecules(List<List<Molecule>> moleculeListByRun, int projectId)
@@ -235,7 +276,7 @@ namespace IrysIntensity
         private static void buildSelectMoleculesCommand(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
             List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
         {
-            string selectMoleculesCommand = "SELECT molId, runId, scan, col, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, chromId, alignmentString, orientation, alignmentChannelPositions FROM molecules WHERE projectId = @param1 AND ";
+            string selectMoleculesCommand = @"SELECT id, molId, runId, scan, col, rowStart, rowEnd, xStart, yStart, xEnd, yEnd, mapped, chromId, alignmentString, orientation, alignmentChannelPositions, channel1Pixels, channel2Pixels FROM molecules WHERE projectId = @param1 AND ";
             int optParamStartVal = 5;
             if (mappedFilter == 1)
             {
@@ -249,7 +290,7 @@ namespace IrysIntensity
             sql_cmd.Parameters.Add(new SQLiteParameter("@param4", percentAlignedFilter));
             if (molIdsFilter != null || (chromIdsFilter != null && chromIdsFilter.Count > 0) || (chromStartEndsFilter != null && chromStartEndsFilter.Count > 0))
             {
-                sql_cmd.CommandText += " OR (";
+                sql_cmd.CommandText += " AND (";
                 if (molIdsFilter != null) //add mol IDs filter as parameters to SELECT IN
                 {
                     sql_cmd.CommandText += " (molId IN ";
@@ -286,40 +327,72 @@ namespace IrysIntensity
             }
         }
 
-        public static IEnumerable<Molecule>[][][] SelectMolecules(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
+        public static Dictionary<int, List<Molecule>[][]> SelectMoleculesForPixelData(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
             List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
         {
             SetConnection();
             sql_con.Open();
-
             using (sql_con)
             {
-                int numRuns = CountProjectRuns(projectId);
                 int maxScans = GetMaxScanNumber(projectId);
-                List<Molecule>[][][] selectedMolecules = new List<Molecule>[numRuns][][];
-                for (int run = 0; run < numRuns; run++)
-                {
-                    selectedMolecules[run] = new List<Molecule>[maxScans][];
-                    for (int scan = 0; scan < maxScans; scan++)
-                    {
-                        selectedMolecules[run][scan] = new List<Molecule>[TiffImages.columnPerScan];
-                        for (int col = 0; col < TiffImages.columnPerScan; col++)
-                        {
-                            selectedMolecules[run][scan][col] = new List<Molecule>();
-                        }
-                    }
-                }
+                Dictionary<int, List<Molecule>[][]> selectedMolecules = new Dictionary<int, List<Molecule>[][]>();
                 buildSelectMoleculesCommand(projectId, mappedFilter, lengthFilter, confidenceFilter, percentAlignedFilter, molIdsFilter, chromIdsFilter, chromStartEndsFilter);
                 using (sql_cmd)
                 {
                     SQLiteDataReader dataReader = sql_cmd.ExecuteReader();
                     while (dataReader.Read())
                     {
-                        Molecule mol = new Molecule(Convert.ToInt32(dataReader["molId"]), Convert.ToInt32(dataReader["runId"]), Convert.ToInt32(dataReader["scan"]), Convert.ToInt32(dataReader["col"]),
-                            Convert.ToInt32(dataReader["rowStart"]), Convert.ToInt32(dataReader["rowEnd"]), Convert.ToDouble(dataReader["xStart"]), Convert.ToDouble(dataReader["xEnd"]),
-                            Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"]), Convert.ToInt32(dataReader["mapped"]), Convert.ToInt32(dataReader["chromId"]), 
-                            dataReader["alignmentString"].ToString(), dataReader["orientation"].ToString(), dataReader["alignmentChannelPositions"].ToString());
-                        selectedMolecules[mol.RunId - 1][mol.Scan - 1][mol.Column - 1].Add(mol);
+                        if (dataReader["channel1Pixels"].GetType() == typeof(DBNull))
+                        {
+                            Molecule mol = new Molecule(Convert.ToInt32(dataReader["id"]), Convert.ToInt32(dataReader["molId"]), Convert.ToInt32(dataReader["runId"]), Convert.ToInt32(dataReader["scan"]),
+                            Convert.ToInt32(dataReader["col"]), Convert.ToInt32(dataReader["rowStart"]), Convert.ToInt32(dataReader["rowEnd"]), Convert.ToDouble(dataReader["xStart"]),
+                            Convert.ToDouble(dataReader["xEnd"]), Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"]));
+                            if (!selectedMolecules.ContainsKey(mol.RunId))
+                            {
+                                selectedMolecules[mol.RunId] = new List<Molecule>[maxScans][];
+                                for (int scan = 0; scan < maxScans; scan++)
+                                {
+                                    selectedMolecules[mol.RunId][scan] = new List<Molecule>[TiffImages.columnPerScan];
+                                    for (int col = 0; col < TiffImages.columnPerScan; col++)
+                                    {
+                                        selectedMolecules[mol.RunId][scan][col] = new List<Molecule>();
+                                    }
+                                }
+                            }
+                            selectedMolecules[mol.RunId][mol.Scan - 1][mol.Column - 1].Add(mol);
+                        }
+                    }
+                }
+                return selectedMolecules;
+            }
+        }
+
+        public static List<Molecule> SelectMoleculesForGenomeAlignment(int projectId, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
+            List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
+        {
+            byte[] pixelBytes;
+            SetConnection();
+            sql_con.Open();
+            using (sql_con)
+            {
+                List<Molecule> selectedMolecules = new List<Molecule>();
+                buildSelectMoleculesCommand(projectId, 1, lengthFilter, confidenceFilter, percentAlignedFilter, molIdsFilter, chromIdsFilter, chromStartEndsFilter);
+                using (sql_cmd)
+                {
+                    double[] molChannel1Pixels;
+                    double[] molChannel2Pixels;
+                    SQLiteDataReader dataReader = sql_cmd.ExecuteReader();
+                    while (dataReader.Read())
+                    {
+                        pixelBytes = (byte[])dataReader["channel1Pixels"];
+                        molChannel1Pixels = new double[pixelBytes.Length / sizeof(double)];
+                        Buffer.BlockCopy(pixelBytes, 0, molChannel1Pixels, 0, pixelBytes.Length);
+                        pixelBytes = (byte[])dataReader["channel2Pixels"];
+                        molChannel2Pixels = new double[pixelBytes.Length / sizeof(double)];
+                        Buffer.BlockCopy(pixelBytes, 0, molChannel2Pixels, 0, pixelBytes.Length);
+                        Molecule mol = new Molecule(Convert.ToInt32(dataReader["molId"]), dataReader["alignmentChannelPositions"].ToString(), Convert.ToInt32(dataReader["chromId"]),
+                            dataReader["alignmentString"].ToString(), dataReader["orientation"].ToString(), molChannel1Pixels, molChannel2Pixels);
+                        selectedMolecules.Add(mol);
                     }
                 }
                 return selectedMolecules;

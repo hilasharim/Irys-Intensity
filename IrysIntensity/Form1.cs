@@ -18,7 +18,14 @@ namespace IrysIntensity
     {
 
         int projectID = 1;
-        IEnumerable<Molecule>[][][] selectedMolecules;
+        Dictionary<int, List<Molecule>[][]> selectedMolecules;
+        int alignmentFilter;
+        float lengthFilter;
+        float confidenceFilter;
+        float alignedLenPercentFilter;
+        int[] molIdsFilterArray;
+        List<int> chromIdsFilter;
+        List<Tuple<int, int, int>> chromStartEndFilter;
         private readonly SynchronizationContext synchronizationContext;
 
         public IrysIntensity()
@@ -136,13 +143,13 @@ namespace IrysIntensity
 
         private void filterMolecules_Click(object sender, EventArgs e)
         {
-            int alignmentFilter = aligned_filter_ckbx.Checked ? 1 : 0;
-            float lengthFilter = String.IsNullOrEmpty(min_len_txtbx.Text) ? 0 : float.Parse(min_len_txtbx.Text) * 1000;
-            float confidenceFilter = String.IsNullOrEmpty(min_conf_txtbx.Text) ? 0 : float.Parse(min_conf_txtbx.Text);
-            float alignedLenPercentFilter = String.IsNullOrEmpty(min_aligned_len_txtbx.Text) ? 0 : float.Parse(min_aligned_len_txtbx.Text);
-            int[] molIdsFilterArray = null;
-            List<int> chromIdsFilter = null;
-            List<Tuple<int, int, int>> chromStartEndFilter = null;
+            alignmentFilter = aligned_filter_ckbx.Checked ? 1 : 0;
+            lengthFilter = String.IsNullOrEmpty(min_len_txtbx.Text) ? 0 : float.Parse(min_len_txtbx.Text) * 1000;
+            confidenceFilter = String.IsNullOrEmpty(min_conf_txtbx.Text) ? 0 : float.Parse(min_conf_txtbx.Text);
+            alignedLenPercentFilter = String.IsNullOrEmpty(min_aligned_len_txtbx.Text) ? 0 : float.Parse(min_aligned_len_txtbx.Text);
+            molIdsFilterArray = null;
+            chromIdsFilter = null;
+            chromStartEndFilter = null;
 
             if (!String.IsNullOrEmpty(mols_ids_txtbx.Text) && !String.IsNullOrEmpty(mol_ids_file_path_txtbx.Text))
             {
@@ -191,13 +198,13 @@ namespace IrysIntensity
                 }
             }
 
-            selectedMolecules =  DatabaseManager.SelectMolecules(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, chromStartEndFilter);
+            //selectedMolecules =  DatabaseManager.SelectMolecules(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, chromStartEndFilter);
         }
 
-        private void openQcmapFile_Click(object sender, EventArgs e)
-        {
-            LoadNewFile(q_cmap_file_path_txtbx, "CMAP");
-        }
+        //private void openQcmapFile_Click(object sender, EventArgs e)
+        //{
+        //    LoadNewFile(q_cmap_file_path_txtbx, "CMAP");
+        //}
 
         private void openRcmapFile_Click(object sender, EventArgs e)
         {
@@ -220,7 +227,6 @@ namespace IrysIntensity
         }
 
         public void updateBox(string text) {
-            //column_counter_txtbx.Text = text;
             synchronizationContext.Post(new SendOrPostCallback(value =>
             {
                 column_counter_txtbx.Text = value.ToString();
@@ -230,14 +236,56 @@ namespace IrysIntensity
         private void button1_Click(object sender, EventArgs e)
         {
             Stopwatch stopWatch = new Stopwatch();
+            string[] runRootDirs = runs_paths_txtbx2.Text.Split('\n');
+            if (String.IsNullOrEmpty(runRootDirs[0]))
+            {
+                MessageBox.Show("Must provide path to root directory of run files", "Missing file path");
+                return;
+            }
             stopWatch.Start();
             Task newTask = Task.Factory.StartNew(() =>
             {
-                CMAPParser.rCmapPositions = CMAPParser.ParseCmap(@"D:\MoleculeQualityReport_r.cmap", 1);
+                //CMAPParser.rCmapPositions = CMAPParser.ParseCmap(@"D:\MoleculeQualityReport_r.cmap", 1);
                 //CMAPParser.qCmapPositions = CMAPParser.ParseCmap(@"D:\MoleculeQualityReport_q.cmap", 1);
-                TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", selectedMolecules[0][0], updateBox);
+                //TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", selectedMolecules[0][0], updateBox);
+                //TiffImages.ProcessRunTiffs(runRootDirs, 1, selectedMolecules[1]);
+                selectedMolecules = DatabaseManager.SelectMoleculesForPixelData(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, 
+                    chromStartEndFilter);
+                TiffImages.ProcessAllRuns(projectID, runRootDirs, selectedMolecules, updateBox);
             });
             newTask.ContinueWith(_ => MessageBox.Show(stopWatch.Elapsed.ToString()));
+        }
+
+        private void get_output_button_Click(object sender, EventArgs e)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            string rCmapPath = r_cmap_file_path_txtbx.Text;
+            string keyFilePath = key_file_path_txtbx2.Text;
+            if (String.IsNullOrEmpty(rCmapPath) || String.IsNullOrEmpty(keyFilePath))
+            {
+                MessageBox.Show("r_cmap and key file required for analysis", "Missing file");
+                return;
+            } 
+            stopwatch.Start();
+            CMAPParser.rCmapPositions = CMAPParser.ParseCmap(rCmapPath, 1);
+            if (CMAPParser.rCmapPositions == null)
+            {
+                MessageBox.Show("Unable to open file: " + rCmapPath, "Problem accessing file");
+                return;
+            }
+            int chroms = CMAPParser.ReadKeyFile(keyFilePath);
+            if (chroms < 0)
+            {
+                MessageBox.Show("Unable to open file: " + keyFilePath, "Problem accessing file");
+                return;
+            }
+            List<Molecule> selectedMolecules = DatabaseManager.SelectMoleculesForGenomeAlignment(projectID, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, 
+                chromStartEndFilter);
+            foreach (Molecule molecule in selectedMolecules)
+            {
+                CMAPParser.FitMoleculeToRef(molecule, true, true);
+            }
+            MessageBox.Show(stopwatch.Elapsed.ToString());
         }
                 
     }

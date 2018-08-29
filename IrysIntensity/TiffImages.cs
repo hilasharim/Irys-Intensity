@@ -14,7 +14,7 @@ namespace IrysIntensity
 {
     class TiffImages
     {
-        private const int totalChannels = 3;
+        public const int totalChannels = 3;
         public const int rowsPerColumn = 12;
         public const int columnPerScan = 95;
         private const int xOpticalAxis = 170;
@@ -266,9 +266,9 @@ namespace IrysIntensity
                 Tuple<double, double> molXYStart = GetRotatedXYPosition(molStartFOVAngle, rotationCenterX, rotationCenterY, molecule.XStart + molStartFOVCumsumXShift, molecule.YStart);
                 Tuple<double, double> molXYEnd = GetRotatedXYPosition(molEndFOVAngle, rotationCenterX, rotationCenterY, molecule.XEnd + molEndFOVCumsumXShift, molecule.YEnd);
                 int molStartReadY = Math.Max((int)Math.Floor(molXYStart.Item2) + imageLength * (molecule.RowStart - 1) + molStartFOVCumsumYShift, 0);
-                int molEndReadY = Math.Min((int)Math.Ceiling(molXYEnd.Item2) + imageLength * (molecule.RowEnd - 1) + molEndFOVCumsumYShift, imageLength * rowsPerColumn + FOVShifts[new Tuple<int,int>(columnNumber, rowsPerColumn)].CumsumYShift);
+                int molEndReadY = Math.Min((int)Math.Ceiling(molXYEnd.Item2) + imageLength * (molecule.RowEnd - 1) + molEndFOVCumsumYShift, imageLength * rowsPerColumn + FOVShifts[new Tuple<int,int>(columnNumber, rowsPerColumn)].CumsumYShift - 1);
                 int molStartReadX = Math.Max((int)Math.Floor((molXYStart.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) - (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]),0);
-                int molEndReadX = Math.Min((int)Math.Ceiling((molXYEnd.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) + (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]), imageWidth);
+                int molEndReadX = Math.Min((int)Math.Ceiling((molXYEnd.Item1 - xOpticalAxis) / relativeMagnifications[channel] + xOpticalAxis) + (int)Math.Floor(moleculePixelsPadding * relativeMagnifications[channel]), imageWidth - 1);
                 int molLength = molEndReadY - molStartReadY + 1;
                 int molWidth = molEndReadX - molStartReadX + 1;
 
@@ -282,7 +282,9 @@ namespace IrysIntensity
                     }
                     moleculePixelData[row - molStartReadY] = (rowSum / molWidth);
                 }
+                molecule.Pixels[channel] = moleculePixelData;
                 moleculesPixels.Add(moleculePixelData);
+                //CMAPParser.FitMoleculeToRef(molecule, moleculePixelData);
             }
             return moleculesPixels;
         }
@@ -320,20 +322,99 @@ namespace IrysIntensity
             return columnRelevantRows;
         }
 
+        public static short[][] GetFrame(Tiff scanTiff, int columnNumber, int rowNumber, int channel, Dictionary<Tuple<int, int>, FOV> FOVShifts, BackgroundFOV[] allChannelsBackgroundFOVs)
+        {
+            Tuple<int, int> colRow = new Tuple<int, int>(columnNumber, rowNumber);
+            short frameNumber = GetFrameNumber(columnNumber, rowNumber, channel);
+            short[][] framePixels = FramePixelsAsShortArray(scanTiff, frameNumber);
+            //SubtractFrameBackground(framePixels, allChannelsBackgroundFOVs[channel]);
+            //framePixels = Rotate180AroundCenter(framePixels);
+            //TranslateX(framePixels, FOVShifts[colRow].CumsumXShift);
+            //framePixels = RotateBilinear(framePixels, FOVShifts[colRow].Angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
+            return framePixels;
+        }
+
+        private static void GetColumnFrames(Tiff scanTiff, int columnNumber, bool[] columnRelevantRows, short[][][][] allChannelRelevantFrames, Dictionary<Tuple<int, int>, FOV> FOVShifts, BackgroundFOV[] allChannelsBackgroundFOVs)
+        {
+            if (columnNumber % 2 != 0)
+            {
+                for (int rowNumber = 1; rowNumber <= rowsPerColumn; rowNumber++)
+                {
+                    if (columnRelevantRows[rowNumber - 1] == true)
+                    {
+                        for (int channel = 0; channel < totalChannels; channel++)
+                        {
+                            allChannelRelevantFrames[channel][rowNumber - 1] = GetFrame(scanTiff, columnNumber, rowNumber, channel, FOVShifts, allChannelsBackgroundFOVs);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int rowNumber = 12; rowNumber >= 1; rowNumber--)
+                {
+                    if (columnRelevantRows[rowNumber - 1] == true)
+                    {
+                        for (int channel = 0; channel < totalChannels; channel++)
+                        {
+                            allChannelRelevantFrames[channel][rowNumber - 1] = GetFrame(scanTiff, columnNumber, rowNumber, channel, FOVShifts, allChannelsBackgroundFOVs);
+                        }
+                    }
+                }
+            }
+        }
+
         private static void ProcessColumnImages(Tiff scanTiff, int columnNumber, Dictionary<Tuple<int, int>, FOV> FOVShifts, BackgroundFOV[] allChannelsBackgroundFOVs, IEnumerable<Molecule> columnMolecules)
         {
             bool[] columnRelevantRows = GetColumnRelevantRows(columnMolecules);
             int totalYShift = FOVShifts[new Tuple<int, int>(columnNumber, rowsPerColumn)].CumsumYShift;
             short[][] framePixels;
+            short[][][][] allChannelRelevantFrames = new short[3][][][];
             short[][] columnPixelData = new short[imageLength * rowsPerColumn + totalYShift][]; //totalYShift is a negative value
             double angle;
             int xShift, yShift;
+            //int yShift;
             short frameNumber;
+
+            for (int channel = 0; channel < totalChannels; channel++)
+            {
+                allChannelRelevantFrames[channel] = new short[rowsPerColumn][][];
+            }
 
             for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
             {
                 columnPixelData[row] = new short[imageWidth];
             }
+
+            //GetColumnFrames(scanTiff, columnNumber, columnRelevantRows, allChannelRelevantFrames, FOVShifts, allChannelsBackgroundFOVs);
+
+            //for (int channel = 0; channel < totalChannels; channel++)
+            //{
+            //    for (int rowNumber = 1; rowNumber <= rowsPerColumn; rowNumber++)
+            //    {
+            //        if (columnRelevantRows[rowNumber - 1] == true)
+            //        {
+            //            Tuple<int, int> colRow = new Tuple<int, int>(columnNumber, rowNumber);
+            //            if (rowNumber > 1 && columnRelevantRows[rowNumber - 2] == true) //prev row was relevant - merge on y overlap
+            //            {
+            //                MergeOnYOverlap(columnPixelData, allChannelRelevantFrames[channel][rowNumber - 1], FOVShifts[colRow].YShift, rowNumber, FOVShifts[colRow].CumsumYShift);
+            //            }
+            //            else //the previous was not relevant - just copy the frame to its position considering its yOverlap
+            //            {
+            //                CopyOnYOverlap(columnPixelData, allChannelRelevantFrames[channel][rowNumber - 1], FOVShifts[colRow].YShift, rowNumber, FOVShifts[colRow].CumsumYShift);
+            //            }
+            //        }
+            //    }
+            //   // IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, columnMolecules, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, channel);
+            //    using (StreamWriter sw = new StreamWriter(@"column8_only_relevant_rows" + channel.ToString() + ".txt"))
+            //    {
+            //        for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
+            //        {
+            //            string print = String.Join("\t", Array.ConvertAll(columnPixelData[row], Convert.ToString));
+            //            sw.WriteLine(print);
+            //        }
+            //    }
+            //}
 
             for (int currentChannel = 1; currentChannel < /*1*/ totalChannels; currentChannel++)
             {
@@ -368,7 +449,8 @@ namespace IrysIntensity
 
                 IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, columnMolecules, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
 
-                //using (StreamWriter sw = new StreamWriter(@"column8_only_relevant_rows.txt"))
+
+                //using (StreamWriter sw = new StreamWriter(@"molecule2742_only_relevant_rows.txt"))
                 //{
                 //    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
                 //    {
@@ -377,12 +459,16 @@ namespace IrysIntensity
                 //    }
                 //}
             }
+            foreach (Molecule molecule in columnMolecules)
+            {
+                DatabaseManager.UpdateMoleculePixelData(molecule.DataBaseId, molecule.Pixels, 1);
+            }
 
         }
 
         public delegate void UpdateBox(string s);
 
-        public static void ProcessScanTiff(string scanTiffFilePath, IEnumerable<Molecule>[] scanMoleculesByCol, UpdateBox updateBox)
+        public static void ProcessScanTiff(string scanTiffFilePath, string FOVFilePath, IEnumerable<Molecule>[] scanMoleculesByCol, BackgroundFOV[] allChannelsBackgroundFOVs, UpdateBox updateBox)
         {
             using (Tiff scanImages = Tiff.Open(scanTiffFilePath, "r"))
             {
@@ -396,17 +482,69 @@ namespace IrysIntensity
                 spp = samplesPerPixel[0].ToShort();
                 scanlineSize = scanImages.ScanlineSize();
 
-                Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
-                BackgroundFOV[] allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(scanImages, 1, 1);
+                //Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
+                Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(FOVFilePath);
+                //BackgroundFOV[] allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(scanImages, 1, 1);
 
-                for (int currColumn = 1; currColumn <=/*8*/ columnPerScan; currColumn++)
+                DatabaseManager.SetConnection();
+                DatabaseManager.sql_con.Open();
+                using (DatabaseManager.sql_con)
                 {
-                    if (scanMoleculesByCol[currColumn - 1].Count() > 0)
+                    using (var transaction = DatabaseManager.sql_con.BeginTransaction())
                     {
-                        ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs, scanMoleculesByCol[currColumn - 1]);
+                        for (int currColumn = 1; currColumn <= columnPerScan; currColumn++)
+                        {
+                            if (scanMoleculesByCol[currColumn - 1].Count() > 0)
+                            {
+                                ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs, scanMoleculesByCol[currColumn - 1]);
+                            }
+                            updateBox(currColumn.ToString());
+                        }
+                        transaction.Commit();
                     }
-                    updateBox(currColumn.ToString());
                 }
+            }
+        }
+
+        private static void ProcessRunTiffs(int projectId, string[] runsDirectoryPaths, int runId, List<Molecule>[][] runMoleculesByScanByCol, UpdateBox updateBox)
+        {
+            const string scanFilesSubDir = "Detect Molecules";
+            const string FOVFilePrefix = "Stitch";
+            const string FOVFileExtension = ".fov";
+            BackgroundFOV[] allChannelsBackgroundFOVs;
+
+            string[] runNameMonth = DatabaseManager.GetRunNameMonth(runId);
+            int rootDirIdx = UserInputParser.GetRunRootDir(runsDirectoryPaths, runNameMonth[1], runNameMonth[0]);
+            if (rootDirIdx >= 0)
+            {
+                string runDir = Path.Combine(runsDirectoryPaths[rootDirIdx], runNameMonth[1], runNameMonth[0]);
+                string backgroundTiffPath = Path.Combine(runDir, runNameMonth[0] + "_Scan001.tiff");
+                using (Tiff backgroundTiff = Tiff.Open(backgroundTiffPath, "r"))
+                {
+                    FieldValue[] width = backgroundTiff.GetField(TiffTag.IMAGEWIDTH);
+                    FieldValue[] height = backgroundTiff.GetField(TiffTag.IMAGELENGTH);
+                    imageLength = height[0].ToInt();
+                    imageWidth = width[0].ToInt();
+                    scanlineSize = backgroundTiff.ScanlineSize();
+                    allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(backgroundTiff, projectId, runId);
+                }
+
+                int currScan = 1;
+                foreach (List<Molecule>[] scanMolsByCol in runMoleculesByScanByCol)
+                {
+                    string scanTiffPath = Path.Combine(runDir, runNameMonth[0] + "_Scan" + currScan.ToString("D3") + ".tiff");
+                    string FOVFilePath = Path.Combine(runDir, scanFilesSubDir, FOVFilePrefix + currScan.ToString() + FOVFileExtension);
+                    ProcessScanTiff(scanTiffPath, FOVFilePath, scanMolsByCol, allChannelsBackgroundFOVs, updateBox);
+                    currScan++;
+                }
+            }
+        }
+
+        public static void ProcessAllRuns(int projectId, string[] runsDirectoryPaths, Dictionary<int, List<Molecule>[][]> selectedMolecules, UpdateBox updateBox)
+        {
+            foreach (KeyValuePair<int, List<Molecule>[][]> entry in selectedMolecules)
+            {
+                ProcessRunTiffs(projectId, runsDirectoryPaths, entry.Key, entry.Value, updateBox);
             }
         }
     }

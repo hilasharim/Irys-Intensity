@@ -66,9 +66,6 @@
             this.openKeyFile = new System.Windows.Forms.Button();
             this.filterMolecules = new System.Windows.Forms.Button();
             this.label16 = new System.Windows.Forms.Label();
-            this.q_cmap_file_path_txtbx = new System.Windows.Forms.TextBox();
-            this.label17 = new System.Windows.Forms.Label();
-            this.openQcmapFile = new System.Windows.Forms.Button();
             this.label18 = new System.Windows.Forms.Label();
             this.r_cmap_file_path_txtbx = new System.Windows.Forms.TextBox();
             this.openRcmapFile = new System.Windows.Forms.Button();
@@ -78,15 +75,15 @@
             this.label20 = new System.Windows.Forms.Label();
             this.runs_paths_txtbx2 = new System.Windows.Forms.TextBox();
             this.openRunLocations = new System.Windows.Forms.Button();
-            this.label21 = new System.Windows.Forms.Label();
-            this.alignment_channel_txtbx = new System.Windows.Forms.TextBox();
             this.label22 = new System.Windows.Forms.Label();
             this.runs_paths_txtbx = new System.Windows.Forms.TextBox();
             this.openRunLocationsAdd = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.get_pixels_button = new System.Windows.Forms.Button();
             this.column_counter_txtbx = new System.Windows.Forms.TextBox();
             this.label23 = new System.Windows.Forms.Label();
             this.mol_upload_alignment_ch_txtbx = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.get_output_button = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -425,42 +422,16 @@
             // 
             this.label16.AutoSize = true;
             this.label16.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
-            this.label16.Location = new System.Drawing.Point(746, 9);
+            this.label16.Location = new System.Drawing.Point(780, 269);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(51, 13);
             this.label16.TabIndex = 37;
             this.label16.Text = "Analyze";
             // 
-            // q_cmap_file_path_txtbx
-            // 
-            this.q_cmap_file_path_txtbx.Location = new System.Drawing.Point(843, 29);
-            this.q_cmap_file_path_txtbx.Name = "q_cmap_file_path_txtbx";
-            this.q_cmap_file_path_txtbx.Size = new System.Drawing.Size(362, 20);
-            this.q_cmap_file_path_txtbx.TabIndex = 40;
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(746, 32);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(91, 13);
-            this.label17.TabIndex = 39;
-            this.label17.Text = "Q_CMAP file path";
-            // 
-            // openQcmapFile
-            // 
-            this.openQcmapFile.Location = new System.Drawing.Point(1211, 27);
-            this.openQcmapFile.Name = "openQcmapFile";
-            this.openQcmapFile.Size = new System.Drawing.Size(75, 23);
-            this.openQcmapFile.TabIndex = 41;
-            this.openQcmapFile.Text = "Browse";
-            this.openQcmapFile.UseVisualStyleBackColor = true;
-            this.openQcmapFile.Click += new System.EventHandler(this.openQcmapFile_Click);
-            // 
             // label18
             // 
             this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(746, 59);
+            this.label18.Location = new System.Drawing.Point(780, 301);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(91, 13);
             this.label18.TabIndex = 42;
@@ -468,14 +439,14 @@
             // 
             // r_cmap_file_path_txtbx
             // 
-            this.r_cmap_file_path_txtbx.Location = new System.Drawing.Point(843, 56);
+            this.r_cmap_file_path_txtbx.Location = new System.Drawing.Point(919, 298);
             this.r_cmap_file_path_txtbx.Name = "r_cmap_file_path_txtbx";
             this.r_cmap_file_path_txtbx.Size = new System.Drawing.Size(362, 20);
             this.r_cmap_file_path_txtbx.TabIndex = 43;
             // 
             // openRcmapFile
             // 
-            this.openRcmapFile.Location = new System.Drawing.Point(1211, 54);
+            this.openRcmapFile.Location = new System.Drawing.Point(1287, 296);
             this.openRcmapFile.Name = "openRcmapFile";
             this.openRcmapFile.Size = new System.Drawing.Size(75, 23);
             this.openRcmapFile.TabIndex = 44;
@@ -486,7 +457,7 @@
             // label19
             // 
             this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(746, 88);
+            this.label19.Location = new System.Drawing.Point(780, 330);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(133, 13);
             this.label19.TabIndex = 45;
@@ -494,14 +465,14 @@
             // 
             // key_file_path_txtbx2
             // 
-            this.key_file_path_txtbx2.Location = new System.Drawing.Point(885, 86);
+            this.key_file_path_txtbx2.Location = new System.Drawing.Point(919, 328);
             this.key_file_path_txtbx2.Name = "key_file_path_txtbx2";
             this.key_file_path_txtbx2.Size = new System.Drawing.Size(362, 20);
             this.key_file_path_txtbx2.TabIndex = 46;
             // 
             // openKeyFile2
             // 
-            this.openKeyFile2.Location = new System.Drawing.Point(1253, 83);
+            this.openKeyFile2.Location = new System.Drawing.Point(1287, 325);
             this.openKeyFile2.Name = "openKeyFile2";
             this.openKeyFile2.Size = new System.Drawing.Size(75, 23);
             this.openKeyFile2.TabIndex = 47;
@@ -512,7 +483,7 @@
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(746, 123);
+            this.label20.Location = new System.Drawing.Point(776, 59);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(61, 13);
             this.label20.TabIndex = 48;
@@ -520,7 +491,7 @@
             // 
             // runs_paths_txtbx2
             // 
-            this.runs_paths_txtbx2.Location = new System.Drawing.Point(813, 123);
+            this.runs_paths_txtbx2.Location = new System.Drawing.Point(843, 32);
             this.runs_paths_txtbx2.Multiline = true;
             this.runs_paths_txtbx2.Name = "runs_paths_txtbx2";
             this.runs_paths_txtbx2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -529,31 +500,13 @@
             // 
             // openRunLocations
             // 
-            this.openRunLocations.Location = new System.Drawing.Point(1181, 150);
+            this.openRunLocations.Location = new System.Drawing.Point(1211, 59);
             this.openRunLocations.Name = "openRunLocations";
             this.openRunLocations.Size = new System.Drawing.Size(105, 23);
             this.openRunLocations.TabIndex = 50;
             this.openRunLocations.Text = "Add run locations";
             this.openRunLocations.UseVisualStyleBackColor = true;
             this.openRunLocations.Click += new System.EventHandler(this.openRunLocations_Click);
-            // 
-            // label21
-            // 
-            this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(746, 217);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(119, 13);
-            this.label21.TabIndex = 51;
-            this.label21.Text = "Alignment label channel";
-            // 
-            // alignment_channel_txtbx
-            // 
-            this.alignment_channel_txtbx.Location = new System.Drawing.Point(871, 214);
-            this.alignment_channel_txtbx.Name = "alignment_channel_txtbx";
-            this.alignment_channel_txtbx.Size = new System.Drawing.Size(30, 20);
-            this.alignment_channel_txtbx.TabIndex = 52;
-            this.alignment_channel_txtbx.Text = "1";
-            this.alignment_channel_txtbx.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // label22
             // 
@@ -583,19 +536,19 @@
             this.openRunLocationsAdd.UseVisualStyleBackColor = true;
             this.openRunLocationsAdd.Click += new System.EventHandler(this.openRunLocationsAdd_Click);
             // 
-            // button1
+            // get_pixels_button
             // 
-            this.button1.Location = new System.Drawing.Point(941, 408);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 55;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.get_pixels_button.Location = new System.Drawing.Point(936, 120);
+            this.get_pixels_button.Name = "get_pixels_button";
+            this.get_pixels_button.Size = new System.Drawing.Size(75, 28);
+            this.get_pixels_button.TabIndex = 55;
+            this.get_pixels_button.Text = "Get Pixels";
+            this.get_pixels_button.UseVisualStyleBackColor = true;
+            this.get_pixels_button.Click += new System.EventHandler(this.button1_Click);
             // 
             // column_counter_txtbx
             // 
-            this.column_counter_txtbx.Location = new System.Drawing.Point(1075, 408);
+            this.column_counter_txtbx.Location = new System.Drawing.Point(1049, 125);
             this.column_counter_txtbx.Name = "column_counter_txtbx";
             this.column_counter_txtbx.Size = new System.Drawing.Size(100, 20);
             this.column_counter_txtbx.TabIndex = 56;
@@ -619,20 +572,40 @@
             this.mol_upload_alignment_ch_txtbx.Text = "1";
             this.mol_upload_alignment_ch_txtbx.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
+            this.label17.Location = new System.Drawing.Point(774, 9);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(89, 13);
+            this.label17.TabIndex = 57;
+            this.label17.Text = "Get Pixel Data";
+            // 
+            // get_output_button
+            // 
+            this.get_output_button.Location = new System.Drawing.Point(1202, 398);
+            this.get_output_button.Name = "get_output_button";
+            this.get_output_button.Size = new System.Drawing.Size(160, 28);
+            this.get_output_button.TabIndex = 58;
+            this.get_output_button.Text = "Get Genome Alignment";
+            this.get_output_button.UseVisualStyleBackColor = true;
+            this.get_output_button.Click += new System.EventHandler(this.get_output_button_Click);
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1405, 661);
+            this.Controls.Add(this.get_output_button);
+            this.Controls.Add(this.label17);
             this.Controls.Add(this.mol_upload_alignment_ch_txtbx);
             this.Controls.Add(this.label23);
             this.Controls.Add(this.column_counter_txtbx);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.get_pixels_button);
             this.Controls.Add(this.openRunLocationsAdd);
             this.Controls.Add(this.runs_paths_txtbx);
             this.Controls.Add(this.label22);
-            this.Controls.Add(this.alignment_channel_txtbx);
-            this.Controls.Add(this.label21);
             this.Controls.Add(this.openRunLocations);
             this.Controls.Add(this.runs_paths_txtbx2);
             this.Controls.Add(this.label20);
@@ -642,9 +615,6 @@
             this.Controls.Add(this.openRcmapFile);
             this.Controls.Add(this.r_cmap_file_path_txtbx);
             this.Controls.Add(this.label18);
-            this.Controls.Add(this.openQcmapFile);
-            this.Controls.Add(this.label17);
-            this.Controls.Add(this.q_cmap_file_path_txtbx);
             this.Controls.Add(this.label16);
             this.Controls.Add(this.filterMolecules);
             this.Controls.Add(this.openKeyFile);
@@ -730,9 +700,6 @@
         private System.Windows.Forms.Button openKeyFile;
         private System.Windows.Forms.Button filterMolecules;
         private System.Windows.Forms.Label label16;
-        private System.Windows.Forms.TextBox q_cmap_file_path_txtbx;
-        private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.Button openQcmapFile;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox r_cmap_file_path_txtbx;
         private System.Windows.Forms.Button openRcmapFile;
@@ -742,15 +709,15 @@
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.TextBox runs_paths_txtbx2;
         private System.Windows.Forms.Button openRunLocations;
-        private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.TextBox alignment_channel_txtbx;
         private System.Windows.Forms.Label label22;
         private System.Windows.Forms.TextBox runs_paths_txtbx;
         private System.Windows.Forms.Button openRunLocationsAdd;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button get_pixels_button;
         private System.Windows.Forms.TextBox column_counter_txtbx;
         private System.Windows.Forms.Label label23;
         private System.Windows.Forms.TextBox mol_upload_alignment_ch_txtbx;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Button get_output_button;
     }
 }
 
