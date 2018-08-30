@@ -50,11 +50,11 @@ namespace IrysIntensity
             }
         }
 
-        private void LoadDirectories(TextBox txtBox)
+        private void LoadDirectories(TextBox txtBox, bool multi)
         {
             CommonOpenFileDialog fd = new CommonOpenFileDialog();
             fd.IsFolderPicker = true;
-            fd.Multiselect = true;
+            fd.Multiselect = multi;
             CommonFileDialogResult dr = fd.ShowDialog();
             if (dr == CommonFileDialogResult.Ok)
             {
@@ -218,12 +218,12 @@ namespace IrysIntensity
 
         private void openRunLocations_Click(object sender, EventArgs e)
         {
-            LoadDirectories(runs_paths_txtbx2);
+            LoadDirectories(runs_paths_txtbx2, true);
         }
 
         private void openRunLocationsAdd_Click(object sender, EventArgs e)
         {
-            LoadDirectories(runs_paths_txtbx);
+            LoadDirectories(runs_paths_txtbx, true);
         }
 
         public void updateBox(string text) {
@@ -261,11 +261,17 @@ namespace IrysIntensity
             Stopwatch stopwatch = new Stopwatch();
             string rCmapPath = r_cmap_file_path_txtbx.Text;
             string keyFilePath = key_file_path_txtbx2.Text;
+            string outputDir = output_dir_txtbx.Text;
             if (String.IsNullOrEmpty(rCmapPath) || String.IsNullOrEmpty(keyFilePath))
             {
                 MessageBox.Show("r_cmap and key file required for analysis", "Missing file");
                 return;
-            } 
+            }
+            if (String.IsNullOrEmpty(outputDir))
+            {
+                MessageBox.Show("Missing output directory path", "Missing path");
+                return;
+            }
             stopwatch.Start();
             CMAPParser.rCmapPositions = CMAPParser.ParseCmap(rCmapPath, 1);
             if (CMAPParser.rCmapPositions == null)
@@ -283,9 +289,14 @@ namespace IrysIntensity
                 chromStartEndFilter);
             foreach (Molecule molecule in selectedMolecules)
             {
-                CMAPParser.FitMoleculeToRef(molecule, true, true);
+                CMAPParser.FitMoleculeToRef(molecule, save_ch1_checkbx.Checked, save_ch2_checkbx.Checked, outputDir);
             }
             MessageBox.Show(stopwatch.Elapsed.ToString());
+        }
+
+        private void open_output_dir_Click(object sender, EventArgs e)
+        {
+            LoadDirectories(output_dir_txtbx, false);
         }
                 
     }

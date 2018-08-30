@@ -150,14 +150,21 @@ namespace IrysIntensity
             }
         }
 
-        private static void SaveMoleculePixelsToFile(IInterpolation molInterpolation, Molecule molecule, int channel)
+        private static void SaveMoleculePixelsToFile(IInterpolation molInterpolation, Molecule molecule, int channel, string outputDir)
         {
             int[] fitPositions = new int[molecule.Pixels[channel - 1].Length];
             for (int pixelPosition = 0; pixelPosition < molecule.Pixels[channel - 1].Length; pixelPosition++)
             {
                 fitPositions[pixelPosition] = (int)(Math.Round(molInterpolation.Interpolate(pixelPosition)));
             }
-            using (StreamWriter sw = new StreamWriter(@"moleculeIntensitiesFromDB_molecule" + molecule.MoleculeId.ToString() + "_channel"+channel.ToString()+".txt"))
+            string outputFileName = "molecule_"+molecule.MoleculeId.ToString() + "_channel" + channel.ToString() + ".txt";
+            string subdirPath = Path.Combine(outputDir, "channel" + channel.ToString());
+            if (!Directory.Exists(subdirPath))
+            {
+                Directory.CreateDirectory(subdirPath);
+            }
+            string outputFilePath = Path.Combine(subdirPath, outputFileName);
+            using (StreamWriter sw = new StreamWriter(outputFilePath))
             {
                 sw.WriteLine("track type=bedGraph name=\"molecule_"+molecule.MoleculeId.ToString()+"_channel"+channel.ToString()+"\"");
                 if (molecule.Orientation == "+")
@@ -171,7 +178,7 @@ namespace IrysIntensity
             }
         }
 
-        public static void FitMoleculeToRef(Molecule molecule, bool saveChannel1Intensities, bool saveChannel2Intensities)
+        public static void FitMoleculeToRef(Molecule molecule, bool saveChannel1Intensities, bool saveChannel2Intensities, string outputDir)
         {
             List<Tuple<int, int>> labelIdAlignmentPositions = XMAPParser.ParseAlignmentString(molecule.AlignmentString); //in each tuple item1 = ref, item2 = molecule
             string[] molAlignmentLabelPositions = molecule.AlignmentChannelLabelPositions.Split('\t');
@@ -197,25 +204,12 @@ namespace IrysIntensity
             IInterpolation linearInterpolation = Interpolate.Linear(molPositions, refPositions);
             if (saveChannel1Intensities)
             {
-                SaveMoleculePixelsToFile(linearInterpolation, molecule, 1);
+                SaveMoleculePixelsToFile(linearInterpolation, molecule, 1, outputDir);
             }
             if (saveChannel2Intensities)
             {
-                SaveMoleculePixelsToFile(linearInterpolation, molecule, 2);
+                SaveMoleculePixelsToFile(linearInterpolation, molecule, 2, outputDir);
             }
-            //for (int pixelPosition = 0; pixelPosition < moleculePixels.Length; pixelPosition++)
-            //{
-            //    double fittedPosition = linearInterpolation.Interpolate(pixelPosition);
-            //    molFitPixelPositions[(int)(Math.Round(fittedPosition))] = moleculePixels[pixelPosition];
-            //}
-            //using (StreamWriter sw = new StreamWriter(@"moleculeIntensitiesZeroBased" + molecule.MoleculeId.ToString() + ".txt"))
-            //{
-            //    foreach (KeyValuePair<int, double> kvp in molFitPixelPositions)
-            //    {
-            //        string print = String.Format("{0}\t{1}\t{2}", "chr"+molecule.ChromId, kvp.Key, kvp.Value);
-            //        sw.WriteLine(print);
-            //    }
-            //}
         }
     }
 }

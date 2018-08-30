@@ -384,15 +384,18 @@ namespace IrysIntensity
                     SQLiteDataReader dataReader = sql_cmd.ExecuteReader();
                     while (dataReader.Read())
                     {
-                        pixelBytes = (byte[])dataReader["channel1Pixels"];
-                        molChannel1Pixels = new double[pixelBytes.Length / sizeof(double)];
-                        Buffer.BlockCopy(pixelBytes, 0, molChannel1Pixels, 0, pixelBytes.Length);
-                        pixelBytes = (byte[])dataReader["channel2Pixels"];
-                        molChannel2Pixels = new double[pixelBytes.Length / sizeof(double)];
-                        Buffer.BlockCopy(pixelBytes, 0, molChannel2Pixels, 0, pixelBytes.Length);
-                        Molecule mol = new Molecule(Convert.ToInt32(dataReader["molId"]), dataReader["alignmentChannelPositions"].ToString(), Convert.ToInt32(dataReader["chromId"]),
-                            dataReader["alignmentString"].ToString(), dataReader["orientation"].ToString(), molChannel1Pixels, molChannel2Pixels);
-                        selectedMolecules.Add(mol);
+                        if (dataReader["channel1Pixels"].GetType() != typeof(DBNull))
+                        {
+                            pixelBytes = (byte[])dataReader["channel1Pixels"];
+                            molChannel1Pixels = new double[pixelBytes.Length / sizeof(double)];
+                            Buffer.BlockCopy(pixelBytes, 0, molChannel1Pixels, 0, pixelBytes.Length);
+                            pixelBytes = (byte[])dataReader["channel2Pixels"];
+                            molChannel2Pixels = new double[pixelBytes.Length / sizeof(double)];
+                            Buffer.BlockCopy(pixelBytes, 0, molChannel2Pixels, 0, pixelBytes.Length);
+                            Molecule mol = new Molecule(Convert.ToInt32(dataReader["molId"]), dataReader["alignmentChannelPositions"].ToString(), Convert.ToInt32(dataReader["chromId"]),
+                                dataReader["alignmentString"].ToString(), dataReader["orientation"].ToString(), molChannel1Pixels, molChannel2Pixels);
+                            selectedMolecules.Add(mol);
+                        }
                     }
                 }
                 return selectedMolecules;

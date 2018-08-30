@@ -84,6 +84,11 @@
             this.mol_upload_alignment_ch_txtbx = new System.Windows.Forms.TextBox();
             this.label17 = new System.Windows.Forms.Label();
             this.get_output_button = new System.Windows.Forms.Button();
+            this.label21 = new System.Windows.Forms.Label();
+            this.output_dir_txtbx = new System.Windows.Forms.TextBox();
+            this.open_output_dir = new System.Windows.Forms.Button();
+            this.save_ch1_checkbx = new System.Windows.Forms.CheckBox();
+            this.save_ch2_checkbx = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -584,7 +589,7 @@
             // 
             // get_output_button
             // 
-            this.get_output_button.Location = new System.Drawing.Point(1202, 398);
+            this.get_output_button.Location = new System.Drawing.Point(1202, 456);
             this.get_output_button.Name = "get_output_button";
             this.get_output_button.Size = new System.Drawing.Size(160, 28);
             this.get_output_button.TabIndex = 58;
@@ -592,11 +597,66 @@
             this.get_output_button.UseVisualStyleBackColor = true;
             this.get_output_button.Click += new System.EventHandler(this.get_output_button_Click);
             // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(780, 361);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(106, 13);
+            this.label21.TabIndex = 59;
+            this.label21.Text = "Output directory path";
+            // 
+            // output_dir_txtbx
+            // 
+            this.output_dir_txtbx.Location = new System.Drawing.Point(919, 358);
+            this.output_dir_txtbx.Name = "output_dir_txtbx";
+            this.output_dir_txtbx.Size = new System.Drawing.Size(362, 20);
+            this.output_dir_txtbx.TabIndex = 60;
+            // 
+            // open_output_dir
+            // 
+            this.open_output_dir.Location = new System.Drawing.Point(1287, 358);
+            this.open_output_dir.Name = "open_output_dir";
+            this.open_output_dir.Size = new System.Drawing.Size(75, 23);
+            this.open_output_dir.TabIndex = 61;
+            this.open_output_dir.Text = "Browse";
+            this.open_output_dir.UseVisualStyleBackColor = true;
+            this.open_output_dir.Click += new System.EventHandler(this.open_output_dir_Click);
+            // 
+            // save_ch1_checkbx
+            // 
+            this.save_ch1_checkbx.AutoSize = true;
+            this.save_ch1_checkbx.Checked = true;
+            this.save_ch1_checkbx.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.save_ch1_checkbx.Location = new System.Drawing.Point(783, 406);
+            this.save_ch1_checkbx.Name = "save_ch1_checkbx";
+            this.save_ch1_checkbx.Size = new System.Drawing.Size(149, 17);
+            this.save_ch1_checkbx.TabIndex = 62;
+            this.save_ch1_checkbx.Text = "Save channel 1 (Irys Red)";
+            this.save_ch1_checkbx.UseVisualStyleBackColor = true;
+            // 
+            // save_ch2_checkbx
+            // 
+            this.save_ch2_checkbx.AutoSize = true;
+            this.save_ch2_checkbx.Checked = true;
+            this.save_ch2_checkbx.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.save_ch2_checkbx.Location = new System.Drawing.Point(962, 406);
+            this.save_ch2_checkbx.Name = "save_ch2_checkbx";
+            this.save_ch2_checkbx.Size = new System.Drawing.Size(158, 17);
+            this.save_ch2_checkbx.TabIndex = 63;
+            this.save_ch2_checkbx.Text = "Save channel 2 (Irys Green)";
+            this.save_ch2_checkbx.UseVisualStyleBackColor = true;
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1405, 661);
+            this.Controls.Add(this.save_ch2_checkbx);
+            this.Controls.Add(this.save_ch1_checkbx);
+            this.Controls.Add(this.open_output_dir);
+            this.Controls.Add(this.output_dir_txtbx);
+            this.Controls.Add(this.label21);
             this.Controls.Add(this.get_output_button);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.mol_upload_alignment_ch_txtbx);
@@ -718,6 +778,11 @@
         private System.Windows.Forms.TextBox mol_upload_alignment_ch_txtbx;
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Button get_output_button;
+        private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.TextBox output_dir_txtbx;
+        private System.Windows.Forms.Button open_output_dir;
+        private System.Windows.Forms.CheckBox save_ch1_checkbx;
+        private System.Windows.Forms.CheckBox save_ch2_checkbx;
     }
 }
 
