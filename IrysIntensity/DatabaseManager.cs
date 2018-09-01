@@ -129,12 +129,8 @@ namespace IrysIntensity
 
         public static string[] GetRunNameMonth(int runId)
         {
-            SetConnection();
-            sql_con.Open();
             string selectRunCommand = "SELECT name, month FROM runs WHERE id = @param1";
             string[] runNameMonth = new string[2];
-            using (sql_con)
-            {
                 using (sql_cmd = new SQLiteCommand(selectRunCommand, sql_con))
                 {
                     sql_cmd.Parameters.Add(new SQLiteParameter("@param1", runId));
@@ -145,7 +141,6 @@ namespace IrysIntensity
                         runNameMonth[1] = reader["month"].ToString();
                     }
                 }
-            }
             return runNameMonth;
         }
 
@@ -195,12 +190,12 @@ namespace IrysIntensity
                 Buffer.BlockCopy(moleculePixels[currChannel], 0, moleculePixelsAsBytes[currChannel], 0, moleculePixelsAsBytes[currChannel].Length);
             }
 
-            using (sql_cmd = new SQLiteCommand(updateMoleculeCommand, sql_con))
+            using (SQLiteCommand updateSqlCmd = new SQLiteCommand(updateMoleculeCommand, sql_con))
             {
-                sql_cmd.Parameters.Add(new SQLiteParameter("@param1", moleculePixelsAsBytes[1]));
-                sql_cmd.Parameters.Add(new SQLiteParameter("@param2", moleculePixelsAsBytes[2]));
-                sql_cmd.Parameters.Add(new SQLiteParameter("@param3", molDBId));
-                sql_cmd.ExecuteNonQuery();
+                updateSqlCmd.Parameters.Add(new SQLiteParameter("@param1", moleculePixelsAsBytes[1]));
+                updateSqlCmd.Parameters.Add(new SQLiteParameter("@param2", moleculePixelsAsBytes[2]));
+                updateSqlCmd.Parameters.Add(new SQLiteParameter("@param3", molDBId));
+                updateSqlCmd.ExecuteNonQuery();
             }    
         }
 
@@ -327,7 +322,7 @@ namespace IrysIntensity
             }
         }
 
-        public static Dictionary<int, List<Molecule>[][]> SelectMoleculesForPixelData(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
+        public static /*Dictionary<int, List<Molecule>[][]>*/ Dictionary<int, Scan[]> SelectMoleculesForPixelData(int projectId, int mappedFilter, float lengthFilter, float confidenceFilter, float percentAlignedFilter, int[] molIdsFilter,
             List<int> chromIdsFilter, List<Tuple<int, int, int>> chromStartEndsFilter)
         {
             SetConnection();
@@ -335,7 +330,7 @@ namespace IrysIntensity
             using (sql_con)
             {
                 int maxScans = GetMaxScanNumber(projectId);
-                Dictionary<int, List<Molecule>[][]> selectedMolecules = new Dictionary<int, List<Molecule>[][]>();
+                Dictionary<int, Scan[]> selectedMolecules = new Dictionary<int, Scan[]>();
                 buildSelectMoleculesCommand(projectId, mappedFilter, lengthFilter, confidenceFilter, percentAlignedFilter, molIdsFilter, chromIdsFilter, chromStartEndsFilter);
                 using (sql_cmd)
                 {
@@ -349,17 +344,13 @@ namespace IrysIntensity
                             Convert.ToDouble(dataReader["xEnd"]), Convert.ToDouble(dataReader["yStart"]), Convert.ToDouble(dataReader["yEnd"]));
                             if (!selectedMolecules.ContainsKey(mol.RunId))
                             {
-                                selectedMolecules[mol.RunId] = new List<Molecule>[maxScans][];
-                                for (int scan = 0; scan < maxScans; scan++)
+                                selectedMolecules[mol.RunId] = new Scan[maxScans];
+                                for (int currScan = 1; currScan <= maxScans; currScan++)
                                 {
-                                    selectedMolecules[mol.RunId][scan] = new List<Molecule>[TiffImages.columnPerScan];
-                                    for (int col = 0; col < TiffImages.columnPerScan; col++)
-                                    {
-                                        selectedMolecules[mol.RunId][scan][col] = new List<Molecule>();
-                                    }
+                                    selectedMolecules[mol.RunId][currScan - 1] = new Scan(currScan);
                                 }
                             }
-                            selectedMolecules[mol.RunId][mol.Scan - 1][mol.Column - 1].Add(mol);
+                            selectedMolecules[mol.RunId][mol.Scan - 1].AddMolecule(mol.Column, mol);
                         }
                     }
                 }
@@ -433,10 +424,10 @@ namespace IrysIntensity
         public static IEnumerable<int> SelectColumnRows(int projectId, int runId, int scan, int column)
         {
             HashSet<int> columnRows = new HashSet<int>();
-            SetConnection();
-            sql_con.Open();
-            using (sql_con)
-            {
+            //SetConnection();
+            //sql_con.Open();
+           // using (sql_con)
+           // {
                 string selectMoleculesCommand = "SELECT DISTINCT rowStart, rowEnd FROM molecules WHERE projectId = @param1 AND runID = @param2 AND scan = @param3 AND col = @param4";
                 using (sql_cmd = new SQLiteCommand(selectMoleculesCommand, sql_con))
                 {
@@ -453,7 +444,7 @@ namespace IrysIntensity
                         }
                     }
                 }
-            }
+          //  }
             return columnRows;
         }
     }

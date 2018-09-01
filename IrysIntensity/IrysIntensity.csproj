@@ -101,6 +101,7 @@
     <Compile Include="Molecule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scan.cs" />
     <Compile Include="TiffImages.cs" />
     <Compile Include="UserInputParser.cs" />
     <Compile Include="XMAPParser.cs" />

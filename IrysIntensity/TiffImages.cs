@@ -249,7 +249,7 @@ namespace IrysIntensity
         }
 
 
-        private static IEnumerable<double[]> getMoleculesPixels(int columnNumber, short[][] columnPixelData, IEnumerable<Molecule> moleculePositions, Dictionary<Tuple<int, int>, FOV> FOVShifts,
+        private static /*IEnumerable<double[]>*/ void getMoleculesPixels(int columnNumber, short[][] columnPixelData, IEnumerable<Molecule> moleculePositions, Dictionary<Tuple<int, int>, FOV> FOVShifts,
                                                                 double rotationCenterX, double rotationCenterY, int channel)
         {
             List<double[]> moleculesPixels = new List<double[]>();
@@ -286,7 +286,7 @@ namespace IrysIntensity
                 moleculesPixels.Add(moleculePixelData);
                 //CMAPParser.FitMoleculeToRef(molecule, moleculePixelData);
             }
-            return moleculesPixels;
+            //return moleculesPixels;
         }
 
         private static BackgroundFOV[] GetAllChannelsBackgroundFOVs(Tiff scanTiff, int projectId, int runId)
@@ -447,7 +447,7 @@ namespace IrysIntensity
                     }
                 }
 
-                IEnumerable<double[]> columnMoleculePixels = getMoleculesPixels(columnNumber, columnPixelData, columnMolecules, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
+                /*IEnumerable<double[]> columnMoleculePixels =*/ getMoleculesPixels(columnNumber, columnPixelData, columnMolecules, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
 
 
                 //using (StreamWriter sw = new StreamWriter(@"molecule2742_only_relevant_rows.txt"))
@@ -468,8 +468,15 @@ namespace IrysIntensity
 
         public delegate void UpdateBox(string s);
 
-        public static void ProcessScanTiff(string scanTiffFilePath, string FOVFilePath, IEnumerable<Molecule>[] scanMoleculesByCol, BackgroundFOV[] allChannelsBackgroundFOVs, UpdateBox updateBox)
+        public static void ProcessScanTiff(string runPath, string runName, Scan scan, BackgroundFOV[] allChannelsBackgroundFOVs, UpdateBox updateBox)
         {
+            const string scanFilesSubDir = "Detect Molecules";
+            const string FOVFilePrefix = "Stitch";
+            const string FOVFileExtension = ".fov";
+
+            string scanTiffFilePath = Path.Combine(runPath, runName + "_Scan" + scan.ScanNumber.ToString("D3") + ".tiff");
+            string FOVFilePath = Path.Combine(runPath, scanFilesSubDir, FOVFilePrefix + scan.ScanNumber.ToString() + FOVFileExtension);
+
             using (Tiff scanImages = Tiff.Open(scanTiffFilePath, "r"))
             {
                 FieldValue[] width = scanImages.GetField(TiffTag.IMAGEWIDTH);
@@ -482,35 +489,25 @@ namespace IrysIntensity
                 spp = samplesPerPixel[0].ToShort();
                 scanlineSize = scanImages.ScanlineSize();
 
-                //Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Detect Molecules\Stitch1.fov");
                 Dictionary<Tuple<int, int>, FOV> FOVData = ParseFOVFile(FOVFilePath);
-                //BackgroundFOV[] allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(scanImages, 1, 1);
 
-                DatabaseManager.SetConnection();
-                DatabaseManager.sql_con.Open();
-                using (DatabaseManager.sql_con)
+                using (var transaction = DatabaseManager.sql_con.BeginTransaction())
                 {
-                    using (var transaction = DatabaseManager.sql_con.BeginTransaction())
+                    for (int currColumn = 1; currColumn <= columnPerScan; currColumn++)
                     {
-                        for (int currColumn = 1; currColumn <= columnPerScan; currColumn++)
+                        if (scan.ColumnMolecules[currColumn - 1].Count > 0)
                         {
-                            if (scanMoleculesByCol[currColumn - 1].Count() > 0)
-                            {
-                                ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs, scanMoleculesByCol[currColumn - 1]);
-                            }
-                            updateBox(currColumn.ToString());
+                            ProcessColumnImages(scanImages, currColumn, FOVData, allChannelsBackgroundFOVs, scan.ColumnMolecules[currColumn - 1]);
                         }
-                        transaction.Commit();
+                        updateBox(currColumn.ToString());
                     }
+                    transaction.Commit();
                 }
             }
         }
 
-        private static void ProcessRunTiffs(int projectId, string[] runsDirectoryPaths, int runId, List<Molecule>[][] runMoleculesByScanByCol, UpdateBox updateBox)
+        private static void ProcessRunTiffs(int projectId, string[] runsDirectoryPaths, int runId, Scan[] runMoleculesByScanByCol, UpdateBox updateBox)
         {
-            const string scanFilesSubDir = "Detect Molecules";
-            const string FOVFilePrefix = "Stitch";
-            const string FOVFileExtension = ".fov";
             BackgroundFOV[] allChannelsBackgroundFOVs;
 
             string[] runNameMonth = DatabaseManager.GetRunNameMonth(runId);
@@ -529,23 +526,25 @@ namespace IrysIntensity
                     allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(backgroundTiff, projectId, runId);
                 }
 
-                int currScan = 1;
-                foreach (List<Molecule>[] scanMolsByCol in runMoleculesByScanByCol)
+                Parallel.ForEach(runMoleculesByScanByCol, scan =>
                 {
-                    string scanTiffPath = Path.Combine(runDir, runNameMonth[0] + "_Scan" + currScan.ToString("D3") + ".tiff");
-                    string FOVFilePath = Path.Combine(runDir, scanFilesSubDir, FOVFilePrefix + currScan.ToString() + FOVFileExtension);
-                    ProcessScanTiff(scanTiffPath, FOVFilePath, scanMolsByCol, allChannelsBackgroundFOVs, updateBox);
-                    currScan++;
-                }
+                    ProcessScanTiff(runDir, runNameMonth[0], scan, allChannelsBackgroundFOVs, updateBox);
+                });
             }
         }
 
-        public static void ProcessAllRuns(int projectId, string[] runsDirectoryPaths, Dictionary<int, List<Molecule>[][]> selectedMolecules, UpdateBox updateBox)
+        public static void ProcessAllRuns(int projectId, string[] runsDirectoryPaths, Dictionary<int, Scan[]> selectedMolecules, UpdateBox updateBox)
         {
-            foreach (KeyValuePair<int, List<Molecule>[][]> entry in selectedMolecules)
+            DatabaseManager.SetConnection();
+            DatabaseManager.sql_con.Open();
+            using (DatabaseManager.sql_con)
             {
-                ProcessRunTiffs(projectId, runsDirectoryPaths, entry.Key, entry.Value, updateBox);
+                foreach (KeyValuePair<int, Scan[]> moleculesByRun in selectedMolecules)
+                {
+                    ProcessRunTiffs(projectId, runsDirectoryPaths, moleculesByRun.Key, moleculesByRun.Value, updateBox);
+                }
             }
+            
         }
     }
 }

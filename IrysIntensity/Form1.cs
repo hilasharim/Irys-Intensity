@@ -18,7 +18,6 @@ namespace IrysIntensity
     {
 
         int projectID = 1;
-        Dictionary<int, List<Molecule>[][]> selectedMolecules;
         int alignmentFilter;
         float lengthFilter;
         float confidenceFilter;
@@ -197,8 +196,6 @@ namespace IrysIntensity
                     }
                 }
             }
-
-            //selectedMolecules =  DatabaseManager.SelectMolecules(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, chromStartEndFilter);
         }
 
         //private void openQcmapFile_Click(object sender, EventArgs e)
@@ -229,7 +226,9 @@ namespace IrysIntensity
         public void updateBox(string text) {
             synchronizationContext.Post(new SendOrPostCallback(value =>
             {
-                column_counter_txtbx.Text = value.ToString();
+                //column_counter_txtbx.Text = value.ToString();
+                int currVal = int.Parse(column_counter_txtbx.Text)+1;
+                column_counter_txtbx.Text = currVal.ToString();
             }), text);
         }        
 
@@ -245,11 +244,7 @@ namespace IrysIntensity
             stopWatch.Start();
             Task newTask = Task.Factory.StartNew(() =>
             {
-                //CMAPParser.rCmapPositions = CMAPParser.ParseCmap(@"D:\MoleculeQualityReport_r.cmap", 1);
-                //CMAPParser.qCmapPositions = CMAPParser.ParseCmap(@"D:\MoleculeQualityReport_q.cmap", 1);
-                //TiffImages.ProcessScanTiff(@"X:\runs\2018-03\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59\Pbmc_hmc_bspq1_6.3.17_fc2_2018-03-25_11_59_Scan001.tiff", selectedMolecules[0][0], updateBox);
-                //TiffImages.ProcessRunTiffs(runRootDirs, 1, selectedMolecules[1]);
-                selectedMolecules = DatabaseManager.SelectMoleculesForPixelData(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, 
+                Dictionary<int, Scan[]> selectedMolecules = DatabaseManager.SelectMoleculesForPixelData(projectID, alignmentFilter, lengthFilter, confidenceFilter, alignedLenPercentFilter, molIdsFilterArray, chromIdsFilter, 
                     chromStartEndFilter);
                 TiffImages.ProcessAllRuns(projectID, runRootDirs, selectedMolecules, updateBox);
             });
