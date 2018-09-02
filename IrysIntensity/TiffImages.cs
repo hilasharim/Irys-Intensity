@@ -158,6 +158,21 @@ namespace IrysIntensity
             return rotatedPixels;
         }
 
+        private static void Rotate180AroundCenterInPlace(short[][] pixelValues)
+        {
+            int midpoint = (int)(Math.Ceiling(imageLength / 2.0));
+            short tempPixel;
+            for (int row = 0; row < midpoint; row++)
+            {
+                for (int col = 0; col < imageWidth; col++)
+                {
+                    tempPixel = pixelValues[row][col];
+                    pixelValues[row][col] = pixelValues[imageLength - 1 - row][imageWidth - 1 - col];
+                    pixelValues[imageLength - 1 - row][imageWidth - 1 - col] = tempPixel;
+                }
+            }
+        }
+
         private static void TranslateX(short[][] pixelValues, int offset)
         {
             if (offset == 0)
@@ -249,10 +264,9 @@ namespace IrysIntensity
         }
 
 
-        private static /*IEnumerable<double[]>*/ void getMoleculesPixels(int columnNumber, short[][] columnPixelData, IEnumerable<Molecule> moleculePositions, Dictionary<Tuple<int, int>, FOV> FOVShifts,
+        private static void getMoleculesPixels(int columnNumber, short[][] columnPixelData, IEnumerable<Molecule> moleculePositions, Dictionary<Tuple<int, int>, FOV> FOVShifts,
                                                                 double rotationCenterX, double rotationCenterY, int channel)
         {
-            List<double[]> moleculesPixels = new List<double[]>();
             foreach (Molecule molecule in moleculePositions)
             {
                 Tuple<int, int> colRowStart = new Tuple<int, int>(columnNumber, molecule.RowStart);
@@ -283,10 +297,7 @@ namespace IrysIntensity
                     moleculePixelData[row - molStartReadY] = (rowSum / molWidth);
                 }
                 molecule.Pixels[channel] = moleculePixelData;
-                moleculesPixels.Add(moleculePixelData);
-                //CMAPParser.FitMoleculeToRef(molecule, moleculePixelData);
             }
-            //return moleculesPixels;
         }
 
         private static BackgroundFOV[] GetAllChannelsBackgroundFOVs(Tiff scanTiff, int projectId, int runId)
@@ -316,8 +327,10 @@ namespace IrysIntensity
             bool[] columnRelevantRows = new bool[rowsPerColumn];
             foreach (Molecule mol in columnMolecules)
             {
-                columnRelevantRows[mol.RowStart - 1] = true;
-                columnRelevantRows[mol.RowEnd - 1] = true;
+                for (int row = mol.RowStart; row <= mol.RowEnd; row++)
+                {
+                    columnRelevantRows[row - 1] = true;
+                }
             }
             return columnRelevantRows;
         }
@@ -433,7 +446,7 @@ namespace IrysIntensity
                         frameNumber = GetFrameNumber(columnNumber, rowNumber, currentChannel);
                         framePixels = FramePixelsAsShortArray(scanTiff, frameNumber);
                         SubtractFrameBackground(framePixels, allChannelsBackgroundFOVs[currentChannel]);
-                        framePixels = Rotate180AroundCenter(framePixels);
+                        Rotate180AroundCenterInPlace(framePixels);
                         TranslateX(framePixels, cumSumXShift);
                         framePixels = RotateBilinear(framePixels, angle, (imageWidth - 1) / 2, (imageLength - 1) / 2);
                         if (rowNumber > 1 && columnRelevantRows[rowNumber - 2] == true) //prev row was relevant - merge on y overlap
@@ -447,10 +460,10 @@ namespace IrysIntensity
                     }
                 }
 
-                /*IEnumerable<double[]> columnMoleculePixels =*/ getMoleculesPixels(columnNumber, columnPixelData, columnMolecules, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
+                getMoleculesPixels(columnNumber, columnPixelData, columnMolecules, FOVShifts, (imageWidth - 1) / 2, (imageLength - 1) / 2, currentChannel);
 
 
-                //using (StreamWriter sw = new StreamWriter(@"molecule2742_only_relevant_rows.txt"))
+                //using (StreamWriter sw = new StreamWriter(@"molecule180.txt"))
                 //{
                 //    for (int row = 0; row < imageLength * rowsPerColumn + totalYShift; row++)
                 //    {
@@ -463,7 +476,6 @@ namespace IrysIntensity
             {
                 DatabaseManager.UpdateMoleculePixelData(molecule.DataBaseId, molecule.Pixels, 1);
             }
-
         }
 
         public delegate void UpdateBox(string s);

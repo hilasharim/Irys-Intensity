@@ -22,3 +22,5 @@ C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\
 C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Release\IrysIntensity.csproj.GenerateResource.Cache
 C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Release\IrysIntensity.exe
 C:\Users\Hila\Documents\Visual Studio 2013\Projects\IrysIntensity\IrysIntensity\obj\Release\IrysIntensity.pdb
+C:\Users\Hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Release\MathNet.Numerics.dll
+C:\Users\Hila\documents\visual studio 2013\Projects\IrysIntensity\IrysIntensity\bin\Release\MathNet.Numerics.xml
