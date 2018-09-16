@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BitMiracle.LibTiff.Classic;
+using System.IO;
 
 namespace IrysIntensity
 {
@@ -11,6 +12,7 @@ namespace IrysIntensity
     {
         public double[][] PixelValues { get; set; }
         public double AverageValue { get; set; }
+        public double StandardDev {get; set;}
         public int Channel { get; set; }
         public int ImageLength { get; set; }
         public int ImageWidth { get; set; }
@@ -52,6 +54,19 @@ namespace IrysIntensity
             this.AverageValue /= (ImageLength * ImageWidth);
         }
 
+        private void CalculateBackgroundStd()
+        {
+            for (int row = 0; row < this.ImageLength; row++)
+            {
+                for (int col = 0; col < this.ImageWidth; col++)
+                {
+                    this.StandardDev += Math.Pow((PixelValues[row][col] - this.AverageValue), 2);
+                }
+            }
+            this.StandardDev /= (ImageLength * ImageWidth - 1);
+            this.StandardDev = Math.Sqrt(this.StandardDev);
+        }
+
         public void CalculateBackground(Tiff scanTiff, int projectId, int runId)
         {
             int[] colsForBackground = new int[] { 1, TiffImages.columnPerScan };
@@ -69,6 +84,19 @@ namespace IrysIntensity
                 }
             }
             this.CalculateAveragePixelValues(scanTiff, framesForBackgroundCalc);
+            this.CalculateBackgroundStd();
+        }
+
+        public void SaveBackgroundImage()
+        {
+            using (StreamWriter sw = new StreamWriter(@"background_image_channel" + this.Channel.ToString() + ".txt"))
+            {
+                for (int row = 0; row < this.ImageLength; row++)
+                {
+                    string print = String.Join("\t", Array.ConvertAll(this.PixelValues[row], Convert.ToString));
+                    sw.WriteLine(print);
+                }
+            }
         }
     }
 }

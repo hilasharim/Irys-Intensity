@@ -313,11 +313,13 @@ namespace IrysIntensity
 
         private static void SubtractFrameBackground(short[][] frame, BackgroundFOV backgroundFOV)
         {
+            short newPixelVal;
             for (int row = 0; row < imageLength; row++)
             {
                 for (int col = 0; col < imageWidth; col++)
                 {
-                    frame[row][col] = (short)(frame[row][col] / backgroundFOV.PixelValues[row][col] * backgroundFOV.AverageValue);
+                    newPixelVal = (short)(frame[row][col] / backgroundFOV.PixelValues[row][col] * backgroundFOV.AverageValue - (backgroundFOV.AverageValue + backgroundFOV.StandardDev));
+                    frame[row][col] = newPixelVal > 0 ? newPixelVal : (short)0;
                 }
             }
         }
@@ -515,6 +517,7 @@ namespace IrysIntensity
                     }
                     transaction.Commit();
                 }
+                scan.ColumnMolecules = null;
             }
         }
 
@@ -538,7 +541,7 @@ namespace IrysIntensity
                     allChannelsBackgroundFOVs = GetAllChannelsBackgroundFOVs(backgroundTiff, projectId, runId);
                 }
 
-                Parallel.ForEach(runMoleculesByScanByCol, scan =>
+                Parallel.ForEach(runMoleculesByScanByCol.Where(scan => scan != null), scan =>
                 {
                     ProcessScanTiff(runDir, runNameMonth[0], scan, allChannelsBackgroundFOVs, updateBox);
                 });

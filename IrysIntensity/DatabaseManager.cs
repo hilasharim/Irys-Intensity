@@ -288,14 +288,18 @@ namespace IrysIntensity
                 sql_cmd.CommandText += " AND (";
                 if (molIdsFilter != null) //add mol IDs filter as parameters to SELECT IN
                 {
-                    sql_cmd.CommandText += " (molId IN ";
+                    sql_cmd.CommandText += "(molId IN ";
                     AddListToINCmd(molIdsFilter, optParamStartVal);
                     sql_cmd.CommandText += ")";
                     optParamStartVal += molIdsFilter.Length;
                 }
                 if (chromIdsFilter != null && chromIdsFilter.Count > 0) //add chrom IDs filter as parameters to SELECT IN
                 {
-                    sql_cmd.CommandText += " OR (chromId IN ";
+                    if (molIdsFilter != null)
+                    {
+                        sql_cmd.CommandText += " OR ";
+                    }
+                    sql_cmd.CommandText += "(chromId IN ";
                     AddListToINCmd(chromIdsFilter.ToArray(), optParamStartVal);
                     sql_cmd.CommandText += ")";
                     optParamStartVal += chromIdsFilter.Count;
@@ -303,7 +307,10 @@ namespace IrysIntensity
                 if (chromStartEndsFilter != null && chromStartEndsFilter.Count > 0) //add chrom, start, end as parameters to SELECT, separated by OR
                 {
                     List<string> newLocationParamStrings = new List<string>();
-                    sql_cmd.CommandText += " OR (";
+                    if (chromIdsFilter != null && chromIdsFilter.Count > 0)
+                    {
+                        sql_cmd.CommandText += " OR (";
+                    }
                     foreach (Tuple<int, int, int> molLocation in chromStartEndsFilter)
                     {
                         string newChromParam = String.Format("@param{0}", optParamStartVal++);
@@ -316,7 +323,10 @@ namespace IrysIntensity
                         newLocationParamStrings.Add(newLocationString);
                     }
                     sql_cmd.CommandText += String.Join("OR ", newLocationParamStrings);
-                    sql_cmd.CommandText += ")";
+                    if (chromIdsFilter != null && chromIdsFilter.Count > 0)
+                    {
+                        sql_cmd.CommandText += ")";
+                    }
                 }
                 sql_cmd.CommandText += ")";
             }
@@ -345,10 +355,14 @@ namespace IrysIntensity
                             if (!selectedMolecules.ContainsKey(mol.RunId))
                             {
                                 selectedMolecules[mol.RunId] = new Scan[maxScans];
-                                for (int currScan = 1; currScan <= maxScans; currScan++)
-                                {
-                                    selectedMolecules[mol.RunId][currScan - 1] = new Scan(currScan);
-                                }
+                                //for (int currScan = 1; currScan <= maxScans; currScan++)
+                                //{
+                                //    selectedMolecules[mol.RunId][currScan - 1] = new Scan(currScan);
+                                //}
+                            }
+                            if (selectedMolecules[mol.RunId][mol.Scan - 1] == null)
+                            {
+                                selectedMolecules[mol.RunId][mol.Scan - 1] = new Scan(mol.Scan);
                             }
                             selectedMolecules[mol.RunId][mol.Scan - 1].AddMolecule(mol.Column, mol);
                         }
