@@ -319,7 +319,7 @@ namespace IrysIntensity
                         sql_cmd.Parameters.Add(new SQLiteParameter(newChromParam, molLocation.Item1));
                         sql_cmd.Parameters.Add(new SQLiteParameter(newStartParam, molLocation.Item2));
                         sql_cmd.Parameters.Add(new SQLiteParameter(newEndParam, molLocation.Item3));
-                        string newLocationString = String.Format("(chromId = {0} AND ((molStart BETWEEN {1} AND {2}) OR (molEnd BETWEEN {1} AND {2})))", newChromParam, newStartParam, newEndParam);
+                        string newLocationString = String.Format("(chromId = {0} AND ((molStart BETWEEN {1} AND {2}) OR (molEnd BETWEEN {1} AND {2}) or (molStart <= {1} AND molEnd >= {2})))", newChromParam, newStartParam, newEndParam);
                         newLocationParamStrings.Add(newLocationString);
                     }
                     sql_cmd.CommandText += String.Join("OR ", newLocationParamStrings);

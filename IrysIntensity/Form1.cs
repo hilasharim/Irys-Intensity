@@ -107,6 +107,8 @@ namespace IrysIntensity
             BNXParser.ParseAllMolFiles(runRootDirs);
             DatabaseManager.AddAllMolecules(BNXParser.moleculeListByRun, projectID);
             MessageBox.Show(String.Format("time elapsed: {0}", stopWatch.Elapsed.ToString()));
+            BNXParser.moleculeListByRun.Clear();
+            XMAPParser.moleculeData.Clear();
         }
          
 
