@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Data;
 using System.Windows.Forms;
+using System.IO;
+using System.Reflection;
 
 namespace IrysIntensity
 {
@@ -16,7 +18,9 @@ namespace IrysIntensity
 
         public static void SetConnection()
         {
-            sql_con = new SQLiteConnection("Data Source=MoleculeData.db; Version=3;New=False;");
+            string exePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string dbPath = Path.Combine(exePath, "MoleculeData.db");
+            sql_con = new SQLiteConnection("Data Source="+ dbPath+"; Version=3;New=False;");
         }
 
         private static void ExecuteNonQueryCmd(string txtQuery)

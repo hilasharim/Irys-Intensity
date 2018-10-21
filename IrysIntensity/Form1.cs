@@ -200,11 +200,6 @@ namespace IrysIntensity
             }
         }
 
-        //private void openQcmapFile_Click(object sender, EventArgs e)
-        //{
-        //    LoadNewFile(q_cmap_file_path_txtbx, "CMAP");
-        //}
-
         private void openRcmapFile_Click(object sender, EventArgs e)
         {
             LoadNewFile(r_cmap_file_path_txtbx, "CMAP");
