@@ -105,6 +105,31 @@ namespace IrysIntensity
             }
         }
 
+        public static void DeleteProjectData(int projectId)
+        {
+            SetConnection();
+            sql_con.Open();
+            using (sql_con)
+            {
+                string deleteProjectMoleculesCmd = "DELETE FROM molecules WHERE projectId = @param1";
+                string deleteProjectRunsCmd = "DELETE FROM runs WHERE projectId = @param1";
+                string deleteProjectCmd = "DELETE FROM projects WHERE id = @param1";
+                using (var transaction = DatabaseManager.sql_con.BeginTransaction())
+                {
+                    sql_cmd = new SQLiteCommand(deleteProjectMoleculesCmd, sql_con);
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                    sql_cmd.ExecuteNonQuery();
+                    sql_cmd = new SQLiteCommand(deleteProjectRunsCmd, sql_con);
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                    sql_cmd.ExecuteNonQuery();
+                    sql_cmd = new SQLiteCommand(deleteProjectCmd, sql_con);
+                    sql_cmd.Parameters.Add(new SQLiteParameter("@param1", projectId));
+                    sql_cmd.ExecuteNonQuery();
+                    transaction.Commit();
+                }
+            }
+        }
+
         public static void AddRun(int projectId, string runName, string runMonth)
         {
             string add_run_command = "INSERT OR IGNORE INTO runs (projectId, name, month) VALUES (@param1, @param2, @param3)";
@@ -203,36 +228,59 @@ namespace IrysIntensity
             }    
         }
 
-        public static void AddAllMolecules(List<List<Molecule>> moleculeListByRun, int projectId)
+        public static void AddRunMolecules(List<Molecule> runMolecules, int projectId, int runId)
         {
-            SetConnection();
-            sql_con.Open();
-            using (sql_con)
+            using (var transaction = DatabaseManager.sql_con.BeginTransaction())
             {
-                using (var transaction = sql_con.BeginTransaction())
+                foreach (Molecule mol in runMolecules)
                 {
-                    for (int run = 0; run < moleculeListByRun.Count; run++)
+                    if (XMAPParser.moleculeData.ContainsKey(mol.MoleculeId)) //molecule aligned - add it to DB with alignment data
                     {
-                        foreach (Molecule mol in moleculeListByRun[run])
-                        {
-                            if (XMAPParser.moleculeData.ContainsKey(mol.MoleculeId)) //molecule aligned - add it to DB with alignment data
-                            {
-                                AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
+                        AddMolecule(projectId, BNXParser.runDBIds[runId], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
                                     mol.YEnd, 1, int.Parse(XMAPParser.moleculeData[mol.MoleculeId][0]), float.Parse(XMAPParser.moleculeData[mol.MoleculeId][1]),
                                     float.Parse(XMAPParser.moleculeData[mol.MoleculeId][2]), XMAPParser.moleculeData[mol.MoleculeId][3], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][4]),
                                     XMAPParser.moleculeData[mol.MoleculeId][5], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][6]), mol.AlignmentChannelLabelPositions);
-                            }
-                            else //add without alignment data, only information from BNX and MOL files
-                            {
-                                AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
-                                    mol.YEnd, 0, 0, 0, 0, "null", 0, "null", 0, mol.AlignmentChannelLabelPositions);
-                            }
-                        }
                     }
-                    transaction.Commit();
+                    else //add without alignment data, only information from BNX and MOL files
+                    {
+                        AddMolecule(projectId, BNXParser.runDBIds[runId], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
+                            mol.YEnd, 0, 0, 0, 0, "null", 0, "null", 0, mol.AlignmentChannelLabelPositions);
+                    }
                 }
+                transaction.Commit();
             }
         }
+
+        //public static void AddAllMolecules(List<List<Molecule>> moleculeListByRun, int projectId)
+        //{
+        //    SetConnection();
+        //    sql_con.Open();
+        //    using (sql_con)
+        //    {
+        //        using (var transaction = sql_con.BeginTransaction())
+        //        {
+        //            for (int run = 0; run < moleculeListByRun.Count; run++)
+        //            {
+        //                foreach (Molecule mol in moleculeListByRun[run])
+        //                {
+        //                    if (XMAPParser.moleculeData.ContainsKey(mol.MoleculeId)) //molecule aligned - add it to DB with alignment data
+        //                    {
+        //                        AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
+        //                            mol.YEnd, 1, int.Parse(XMAPParser.moleculeData[mol.MoleculeId][0]), float.Parse(XMAPParser.moleculeData[mol.MoleculeId][1]),
+        //                            float.Parse(XMAPParser.moleculeData[mol.MoleculeId][2]), XMAPParser.moleculeData[mol.MoleculeId][3], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][4]),
+        //                            XMAPParser.moleculeData[mol.MoleculeId][5], float.Parse(XMAPParser.moleculeData[mol.MoleculeId][6]), mol.AlignmentChannelLabelPositions);
+        //                    }
+        //                    else //add without alignment data, only information from BNX and MOL files
+        //                    {
+        //                        AddMolecule(projectId, BNXParser.runDBIds[run + 1], mol.MoleculeId, mol.Scan, mol.OriginalId, mol.Length, mol.Column, mol.RowStart, mol.RowEnd, mol.XStart, mol.YStart, mol.XEnd,
+        //                            mol.YEnd, 0, 0, 0, 0, "null", 0, "null", 0, mol.AlignmentChannelLabelPositions);
+        //                    }
+        //                }
+        //            }
+        //            transaction.Commit();
+        //        }
+        //    }
+        //}
 
         /*called when sql_con is already open and inside a using statement*/
         private static int CountProjectRuns(int projectId)

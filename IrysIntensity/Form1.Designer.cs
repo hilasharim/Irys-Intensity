@@ -89,6 +89,7 @@
             this.open_output_dir = new System.Windows.Forms.Button();
             this.save_ch1_checkbx = new System.Windows.Forms.CheckBox();
             this.save_ch2_checkbx = new System.Windows.Forms.CheckBox();
+            this.deleteProjectBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // manageProjects
@@ -647,11 +648,22 @@
             this.save_ch2_checkbx.Text = "Save channel 2 (Irys Green)";
             this.save_ch2_checkbx.UseVisualStyleBackColor = true;
             // 
+            // deleteProjectBtn
+            // 
+            this.deleteProjectBtn.Location = new System.Drawing.Point(278, 61);
+            this.deleteProjectBtn.Name = "deleteProjectBtn";
+            this.deleteProjectBtn.Size = new System.Drawing.Size(121, 23);
+            this.deleteProjectBtn.TabIndex = 64;
+            this.deleteProjectBtn.Text = "Delete project";
+            this.deleteProjectBtn.UseVisualStyleBackColor = true;
+            this.deleteProjectBtn.Click += new System.EventHandler(this.deleteProjectButton);
+            // 
             // IrysIntensity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1405, 661);
+            this.Controls.Add(this.deleteProjectBtn);
             this.Controls.Add(this.save_ch2_checkbx);
             this.Controls.Add(this.save_ch1_checkbx);
             this.Controls.Add(this.open_output_dir);
@@ -783,6 +795,7 @@
         private System.Windows.Forms.Button open_output_dir;
         private System.Windows.Forms.CheckBox save_ch1_checkbx;
         private System.Windows.Forms.CheckBox save_ch2_checkbx;
+        private System.Windows.Forms.Button deleteProjectBtn;
     }
 }
 

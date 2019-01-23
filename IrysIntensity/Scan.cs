@@ -23,7 +23,10 @@ namespace IrysIntensity
 
         public void AddMolecule(int columnNumber, Molecule molecule)
         {
-            this.ColumnMolecules[columnNumber-1].Add(molecule);
+            if (columnNumber > 0)
+            {
+                this.ColumnMolecules[columnNumber - 1].Add(molecule);
+            }
         }
     }
 }

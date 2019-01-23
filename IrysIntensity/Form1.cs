@@ -98,16 +98,13 @@ namespace IrysIntensity
                 MessageBox.Show("Can't open specified XMAP file", "Error opening file");
                 return;
             }
-            int totalMolecules = BNXParser.ParseBNX(bnxFilePath, projectID, alignmentLabelChannel);
+            int totalMolecules = BNXParser.ParseBNX(bnxFilePath, projectID, alignmentLabelChannel, runRootDirs);
             if (totalMolecules == -1)
             {
                 MessageBox.Show("Can't open specified BNX file", "Error opening file");
                 return;
             }
-            BNXParser.ParseAllMolFiles(runRootDirs);
-            DatabaseManager.AddAllMolecules(BNXParser.moleculeListByRun, projectID);
             MessageBox.Show(String.Format("time elapsed: {0}", stopWatch.Elapsed.ToString()));
-            BNXParser.moleculeListByRun.Clear();
             XMAPParser.moleculeData.Clear();
         }
          
@@ -289,6 +286,16 @@ namespace IrysIntensity
         private void open_output_dir_Click(object sender, EventArgs e)
         {
             LoadDirectories(output_dir_txtbx, false);
+        }
+
+        private void deleteProjectButton(object sender, EventArgs e)
+        {
+            var confirmDelete = MessageBox.Show("This will delete all data associated with the selected project. Are you sure?", "Confirm project removal", MessageBoxButtons.OKCancel);
+            if (confirmDelete == DialogResult.OK)
+            {
+                DatabaseManager.DeleteProjectData(projectID);
+                DatabaseManager.updateComboBox(projectsCmbBox, "name", "id", "projects");
+            }
         }
                 
     }
